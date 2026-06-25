@@ -13,6 +13,8 @@ import ApprovedUser from "../pages/ApprovedUser";
 import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
+import MenuPage from "../pages/MenuPage";
+
 export default function AppRoutes() {
 
     return (
@@ -81,6 +83,12 @@ export default function AppRoutes() {
                         }
                     />
                 </Route>
+
+                <Route
+                    path="/menu/:id"
+                    element={<MenuPage />}
+                />
+
 
             </Routes>
 
