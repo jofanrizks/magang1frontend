@@ -2,40 +2,78 @@ import { useState } from "react";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export default function RegisterForm() {
 
+    const navigate = useNavigate();
+
     const [form, setForm] = useState({
-        nik:"",
-        nama:"",
-        instansi:"",
-        jabatan:"",
-        telp:"",
-        password:"",
-        password_confirmation:""
+        nik: "",
+        nama: "",
+        instansi: "",
+        jabatan: "",
+        telp: "",
+        password: "",
+        password_confirmation: ""
     });
 
-    async function handleSubmit(e){
+    async function handleSubmit(e) {
 
         e.preventDefault();
 
-        try{
+        try {
 
             await api.post(
                 "/register",
                 form
             );
 
-            alert(
-                "OTP berhasil dikirim ke WhatsApp"
+            await Swal.fire({
+                icon: "success",
+                title: "Registrasi Berhasil",
+                text: "Silakan lanjut verifikasi OTP"
+            });
+            localStorage.setItem(
+                "nik",
+                form.nik
             );
 
-        }
-        catch(err){
+            navigate("/otp");
 
-            console.log(
-                err.response.data
-            );
+        } catch (err) {
+
+            const errors =
+                err.response?.data?.errors;
+
+            let pesan = [];
+
+            if (errors?.nik) {
+                pesan.push("NIK sudah terdaftar");
+            }
+
+            if (errors?.telp) {
+                pesan.push("Nomor HP sudah terdaftar");
+            }
+
+            if (errors?.password) {
+                pesan.push(errors.password[0]);
+            }
+
+            if (errors?.password_confirmation) {
+                pesan.push(errors.password_confirmation[0]);
+            }
+
+            Swal.fire({
+                icon: "warning",
+                title: "Registrasi Gagal",
+                html:
+                    pesan.length > 0
+                        ? pesan.join("<br>")
+                        : err.response?.data?.message ||
+                          "Periksa kembali data yang diinput"
+            });
 
         }
 
@@ -50,50 +88,55 @@ export default function RegisterForm() {
 
             <Input
                 label="NIK"
-                onChange={(e)=>
+                value={form.nik}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        nik:e.target.value
+                        nik: e.target.value
                     })
                 }
             />
 
             <Input
                 label="Nama"
-                onChange={(e)=>
+                value={form.nama}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        nama:e.target.value
+                        nama: e.target.value
                     })
                 }
             />
 
             <Input
                 label="Instansi"
-                onChange={(e)=>
+                value={form.instansi}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        instansi:e.target.value
+                        instansi: e.target.value
                     })
                 }
             />
 
             <Input
                 label="Jabatan"
-                onChange={(e)=>
+                value={form.jabatan}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        jabatan:e.target.value
+                        jabatan: e.target.value
                     })
                 }
             />
 
             <Input
                 label="No HP"
-                onChange={(e)=>
+                value={form.telp}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        telp:e.target.value
+                        telp: e.target.value
                     })
                 }
             />
@@ -101,10 +144,11 @@ export default function RegisterForm() {
             <Input
                 label="Password"
                 type="password"
-                onChange={(e)=>
+                value={form.password}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        password:e.target.value
+                        password: e.target.value
                     })
                 }
             />
@@ -112,15 +156,16 @@ export default function RegisterForm() {
             <Input
                 label="Konfirmasi Password"
                 type="password"
-                onChange={(e)=>
+                value={form.password_confirmation}
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        password_confirmation:e.target.value
+                        password_confirmation: e.target.value
                     })
                 }
             />
 
-            <Button>
+            <Button type="submit">
                 Register
             </Button>
 

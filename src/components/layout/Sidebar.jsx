@@ -26,7 +26,7 @@ export default function Sidebar() {
         <div className="w-64 bg-slate-900 text-white min-h-screen p-5">
 
             <h1 className="text-2xl font-bold mb-10">
-                Sistem Magang
+                Magang
             </h1>
 
             <div className="space-y-3">

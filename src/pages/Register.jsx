@@ -5,42 +5,60 @@ export default function Register() {
 
     return (
 
-        <div className="
-        min-h-screen
-        bg-slate-100
-        flex
-        justify-center
-        items-center">
+        <div
+            className="
+                min-h-screen
+                bg-slate-100
+                flex
+                items-center
+                justify-center
+            "
+        >
 
-            <div className="
-            bg-white
-            p-8
-            rounded-3xl
-            shadow-xl
-            w-[500px]">
+            <div
+                className="
+                    bg-white
+                    w-full
+                    max-w-lg
+                    p-8
+                    rounded-3xl
+                    shadow-xl
+                "
+            >
 
-                <h1 className="
-                text-3xl
-                font-bold
-                mb-6">
-
+                <h1
+                    className="
+                        text-3xl
+                        font-bold
+                        mb-6
+                        text-center
+                    "
+                >
                     Register
-
                 </h1>
 
-                <RegisterForm/>
+                <RegisterForm />
 
-                <p className="mt-5">
-
+                <p
+                    className="
+                        mt-5
+                        text-center
+                        text-sm
+                        text-gray-600
+                    "
+                >
                     Sudah punya akun?
 
                     <Link
-                        className="text-blue-600 ml-2"
-                        to="/"
+                        to="/login"
+                        className="
+                            ml-2
+                            text-blue-600
+                            hover:text-blue-800
+                            font-medium
+                        "
                     >
-
                         Login
-
                     </Link>
 
                 </p>

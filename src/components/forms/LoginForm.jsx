@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { login } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+import Input from "../ui/Input";
+import Button from "../ui/Button";
 
 export default function LoginForm() {
 
@@ -13,30 +15,73 @@ export default function LoginForm() {
 
     async function handleSubmit(e) {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        try {
+    try {
 
-            const res = await login(form);
+        const res = await login(form);
 
             localStorage.setItem(
                 "token",
                 res.data.token
             );
 
-            navigate("/dashboard");
-
+            localStorage.setItem(
+                "user",
+                JSON.stringify(
+                    res.data.user
+                )
+            );
+            if (
+                res.data.user.role === "admin"
+            ) {
+                navigate("/dashboard");
+            } else {
+                navigate("/home");
+            }
         } catch (err) {
-
-            alert(err.response?.data?.message);
-
+            alert(
+                err.response?.data?.message ||
+                "Login gagal"
+            );
         }
-
     }
-
     return (
-        <>
-            {/* input */}
-        </>
+
+        <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+        >
+
+            <Input
+                label="NIK"
+                value={form.nik}
+                onChange={(e)=>
+                    setForm({
+                        ...form,
+                        nik:e.target.value
+                    })
+                }
+            />
+
+            <Input
+                label="Password"
+                type="password"
+                value={form.password}
+                onChange={(e)=>
+                    setForm({
+                        ...form,
+                        password:e.target.value
+                    })
+                }
+            />
+
+            <Button>
+                Login
+            </Button>
+
+        </form>
+
     );
+
 }
