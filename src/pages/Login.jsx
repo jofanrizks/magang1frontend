@@ -29,6 +29,15 @@ export default function Login() {
                 </h1>
 
                 <LoginForm/>
+                <Link
+                        to="/forgot-password"
+                        className="
+                            text-blue-600
+                            text-sm
+                        "
+                    >
+                        Lupa Password?
+                    </Link>
 
                 <p className="mt-5">
 
@@ -42,6 +51,7 @@ export default function Login() {
                         Register
 
                     </Link>
+                    
 
                 </p>
 

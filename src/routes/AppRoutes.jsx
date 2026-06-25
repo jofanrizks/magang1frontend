@@ -6,6 +6,9 @@ import Register from "../pages/Register";
 import Otp from "../pages/Otp";
 import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+import MenuPage from "../pages/MenuPages";
 
 import PendingUser from "../pages/PendingUser";
 import ApprovedUser from "../pages/ApprovedUser";
@@ -38,6 +41,18 @@ export default function AppRoutes() {
                     element={<Otp />}
                 />
 
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPassword />}
+                />
+
+                <Route
+                    path="/reset-password"
+                    element={<ResetPassword />}
+                />
+
+                
+
                 {/* User */}
 
                 <Route
@@ -47,6 +62,16 @@ export default function AppRoutes() {
                             role="user"
                         >
                             <Home />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/menu/:id"
+                    element={
+                        <ProtectedRoute
+                            role="user"
+                        >
+                            <MenuPage />
                         </ProtectedRoute>
                     }
                 />
