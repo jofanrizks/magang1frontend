@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
+
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const menus = [
         {
@@ -21,33 +24,89 @@ export default function Sidebar() {
         }
     ];
 
+    function logout() {
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        navigate("/login");
+
+    }
+
     return (
 
-        <div className="w-64 bg-slate-900 text-white min-h-screen p-5">
+        <div
+            className="
+                w-64
+                bg-slate-900
+                text-white
+                min-h-screen
+                p-5
+                flex
+                flex-col
+            "
+        >
 
-            <h1 className="text-2xl font-bold mb-10">
-                Magang
-            </h1>
+            <div>
 
-            <div className="space-y-3">
+                <h1
+                    className="
+                        text-2xl
+                        font-bold
+                        mb-10
+                    "
+                >
+                    Admin Panel
+                </h1>
 
-                {
-                    menus.map(menu => (
+                <div className="space-y-2">
+
+                    {menus.map((menu) => (
 
                         <Link
                             key={menu.path}
                             to={menu.path}
-                            className="block p-3 rounded-xl hover:bg-slate-700"
+                            className={`
+                                block
+                                p-3
+                                rounded-xl
+                                transition
+                                ${
+                                    location.pathname === menu.path
+                                        ? "bg-blue-600"
+                                        : "hover:bg-slate-700"
+                                }
+                            `}
                         >
                             {menu.name}
                         </Link>
 
-                    ))
-                }
+                    ))}
+
+                </div>
+
+            </div>
+
+            <div className="mt-auto">
+
+                <button
+                    onClick={logout}
+                    className="
+                        w-full
+                        bg-red-600
+                        hover:bg-red-700
+                        py-3
+                        rounded-xl
+                        font-semibold
+                    "
+                >
+                    Logout
+                </button>
 
             </div>
 
         </div>
 
     );
+
 }

@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route }
+from "react-router-dom";
 
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -6,7 +7,11 @@ import Otp from "../pages/Otp";
 import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
 
+import PendingUser from "../pages/PendingUser";
+import ApprovedUser from "../pages/ApprovedUser";
+
 import MainLayout from "../components/layout/MainLayout";
+import ProtectedRoute from "./ProtectedRoute";
 
 export default function AppRoutes() {
 
@@ -15,6 +20,8 @@ export default function AppRoutes() {
         <BrowserRouter>
 
             <Routes>
+
+                {/* Public */}
 
                 <Route
                     path="/login"
@@ -31,18 +38,49 @@ export default function AppRoutes() {
                     element={<Otp />}
                 />
 
+                {/* User */}
+
                 <Route
-                    element={<MainLayout />}
+                    path="/home"
+                    element={
+                        <ProtectedRoute
+                            role="user"
+                        >
+                            <Home />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Admin */}
+
+                <Route
+                    element={
+                        <ProtectedRoute
+                            role="admin"
+                        >
+                            <MainLayout />
+                        </ProtectedRoute>
+                    }
                 >
                     <Route
                         path="/dashboard"
-                        element={<Dashboard />}
+                        element={
+                            <Dashboard />
+                        }
+                    />
+                    <Route
+                        path="/pending-users"
+                        element={
+                            <PendingUser />
+                        }
+                    />
+                    <Route
+                        path="/approved-users"
+                        element={
+                            <ApprovedUser />
+                        }
                     />
                 </Route>
-                <Route
-                    path="/home"
-                    element={<Home />}
-                />
 
             </Routes>
 

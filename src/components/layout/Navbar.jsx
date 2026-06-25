@@ -1,4 +1,21 @@
+import { useNavigate } from "react-router-dom";
+
+
 export default function Navbar() {
+const navigate = useNavigate();
+function logout() {
+
+    localStorage.removeItem(
+        "token"
+    );
+
+    localStorage.removeItem(
+        "user"
+    );
+
+    navigate("/login");
+
+}
 
     return (
 
@@ -8,15 +25,18 @@ export default function Navbar() {
             p-5
             flex
             justify-between
+            
+
         ">
 
             <h1 className="font-bold text-xl">
 
-                Dashboard
+                Sistem
 
             </h1>
 
             <button
+                onClick={logout}
                 className="
                 bg-red-500
                 text-white
