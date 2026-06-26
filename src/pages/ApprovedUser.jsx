@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
+import Table from "../components/ui/Table";
+import Badge from "../components/ui/Badge";
+
 export default function ApprovedUser() {
 
     const [users, setUsers] = useState([]);
@@ -11,76 +14,75 @@ export default function ApprovedUser() {
 
     async function getUsers() {
 
-        const res = await api.get(
-            "/approved-users"
-        );
+        try {
 
-        setUsers(res.data);
+            const res = await api.get("/getApprovedUsers");
+
+            setUsers(res.data.data);
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
 
     }
 
+    const columns = [
+
+        {
+            key: "nik",
+            title: "NIK"
+        },
+
+        {
+            key: "nama",
+            title: "Nama"
+        },
+
+        {
+            key: "jabatan",
+            title: "Jabatan"
+        },
+
+        {
+            key: "telp",
+            title: "No HP"
+        },
+
+        {
+            key: "instansi",
+            title: "Instansi"
+        },
+
+    ];
+
     return (
 
-        <div className="p-6">
+        <div className="space-y-8">
 
-            <h1 className="text-2xl font-bold mb-6">
-                Approved User
-            </h1>
+            {/* Header */}
 
-            <div className="bg-white rounded-xl shadow">
+            <div>
 
-                <table className="w-full">
+                <h1 className="text-3xl font-bold">
+                    Approved User
+                </h1>
 
-                    <thead>
-
-                        <tr className="border-b">
-
-                            <th className="p-4">
-                                NIK
-                            </th>
-
-                            <th className="p-4">
-                                Nama
-                            </th>
-
-                            <th className="p-4">
-                                Instansi
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {users.map((user) => (
-
-                            <tr
-                                key={user.id}
-                                className="border-b"
-                            >
-
-                                <td className="p-4">
-                                    {user.nik}
-                                </td>
-
-                                <td className="p-4">
-                                    {user.nama}
-                                </td>
-
-                                <td className="p-4">
-                                    {user.instansi}
-                                </td>
-
-                            </tr>
-
-                        ))}
-
-                    </tbody>
-
-                </table>
+                <p className="text-gray-500 mt-2">
+                    Daftar seluruh pengguna yang telah disetujui
+                </p>
 
             </div>
+
+            {/* Table */}
+
+            <Table
+                // title="Data Approved User"
+                // subtitle={`Total ${users.length} pengguna telah disetujui.`}
+                columns={columns}
+                data={users}
+            />
 
         </div>
 

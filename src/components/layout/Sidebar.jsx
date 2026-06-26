@@ -49,7 +49,7 @@ export default function Sidebar() {
 
             <div>
 
-                <h1
+                {/* <h1
                     className="
                         text-2xl
                         font-bold
@@ -57,7 +57,7 @@ export default function Sidebar() {
                     "
                 >
                     Admin Panel
-                </h1>
+                </h1> */}
 
                 <div className="space-y-2">
 
