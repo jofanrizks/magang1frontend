@@ -40,6 +40,11 @@ export default function Sidebar() {
             name: "Profile",
             path: "/profile",
             icon: User
+        },
+        {
+            name: "Content",
+            path: "/content",
+            icon: Clock3
         }
     ];
 

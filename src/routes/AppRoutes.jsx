@@ -14,6 +14,7 @@ import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
 import MenuPage from "../pages/MenuPage";
+import Content from "../pages/Content";
 
 export default function AppRoutes() {
 
@@ -88,6 +89,12 @@ export default function AppRoutes() {
                     path="/menu/:id"
                     element={<MenuPage />}
                 />
+
+                <Route
+                    path="/content"
+                    element={<Content />}
+                />
+
 
 
             </Routes>

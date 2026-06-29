@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 import api from "../api/axios";
 import Navbar from "../components/layout/Navbar";
@@ -15,10 +14,13 @@ import {
 export default function Home() {
 
     const [setting, setSetting] = useState(null);
-    const [openMenu, setOpenMenu] = useState({});
+    const [banners, setBanners] = useState([]);
 
     useEffect(() => {
+
         getSetting();
+        getBanners();
+
     }, []);
 
     async function getSetting() {
@@ -91,34 +93,27 @@ export default function Home() {
 
     ];
 
-    const banners = [
-        {
-            image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&q=80",
-            title: "Banner 1",
-            description: "Deskripsi banner 1"
-        },
-        {
-            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=80water",
-            title: "Banner 2",
-            description: "Deskripsi banner 2"
-        },
-        {
-            image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1920&q=80",
-            title: "Banner 3",
-            description: "Deskripsi banner 3"
-        },
-        {
-            image: "https://source.unsplash.com/1600x900/?nature,water",
-            title: "Banner 3",
-            description: "Deskripsi banner 4"
-        },
-        {
-            image: "https://source.unsplash.com/1600x900/?nature,water",
-            title: "Banner 3",
-            description: "Deskripsi banner 3"
-        }
-    ]
 
+    async function getBanners() {
+
+        try {
+
+            const res = await api.get("/banner");
+                setBanners(
+                    res.data.data.map((banner) => ({
+                        image: `http://127.0.0.1:8000/storage/${banner.image}`,
+                        title: banner.title,
+                        description: banner.description
+                    }))
+                );
+
+        } catch (err) {
+
+            console.log(err);            
+
+        }
+
+    }
     
     if (!setting) {
 
