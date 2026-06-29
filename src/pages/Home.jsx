@@ -16,6 +16,8 @@ export default function Home() {
     const [setting, setSetting] = useState(null);
     const [banners, setBanners] = useState([]);
 
+    const [openMenu, setOpenMenu] = useState(null);
+
     useEffect(() => {
 
         getSetting();
