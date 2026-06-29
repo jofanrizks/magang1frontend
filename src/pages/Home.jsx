@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 import api from "../api/axios";
 import Navbar from "../components/layout/Navbar";
+import HeroSlider from "../components/home/HeroSlider";
+import ServiceAccordion from "../components/home/ServiceAccordion";
+import Footer from "../components/home/Footer";
 
+import {
+    ChevronDown,
+    ChevronUp
+} from "lucide-react";
 
 export default function Home() {
+
     const [setting, setSetting] = useState(null);
     const [openMenu, setOpenMenu] = useState({});
 
@@ -13,15 +22,23 @@ export default function Home() {
     }, []);
 
     async function getSetting() {
+
         try {
+
             const res = await api.get("/settings");
             setSetting(res.data);
+
         } catch (err) {
+
             console.log(err);
+
         }
+
     }
 
+
     const menus = [
+
         {
             title: "Layanan 1",
             items: [
@@ -31,6 +48,7 @@ export default function Home() {
                 { id: 4, name: "Menu 4", path: "/menu/4" }
             ]
         },
+
         {
             title: "Layanan 2",
             items: [
@@ -40,6 +58,7 @@ export default function Home() {
                 { id: 8, name: "Menu 8", path: "/menu/8" }
             ]
         },
+
         {
             title: "Layanan 3",
             items: [
@@ -49,6 +68,7 @@ export default function Home() {
                 { id: 12, name: "Menu 12", path: "/menu/12" }
             ]
         },
+
         {
             title: "Layanan 4",
             items: [
@@ -58,6 +78,7 @@ export default function Home() {
                 { id: 16, name: "Menu 16", path: "/menu/16" }
             ]
         },
+
         {
             title: "Layanan 5",
             items: [
@@ -67,97 +88,71 @@ export default function Home() {
                 { id: 20, name: "Menu 20", path: "/menu/20" }
             ]
         }
+
     ];
 
+    const banners = [
+        {
+            image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&q=80",
+            title: "Banner 1",
+            description: "Deskripsi banner 1"
+        },
+        {
+            image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1920&q=80water",
+            title: "Banner 2",
+            description: "Deskripsi banner 2"
+        },
+        {
+            image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1920&q=80",
+            title: "Banner 3",
+            description: "Deskripsi banner 3"
+        },
+        {
+            image: "https://source.unsplash.com/1600x900/?nature,water",
+            title: "Banner 3",
+            description: "Deskripsi banner 4"
+        },
+        {
+            image: "https://source.unsplash.com/1600x900/?nature,water",
+            title: "Banner 3",
+            description: "Deskripsi banner 3"
+        }
+    ]
+
+    
     if (!setting) {
+
         return (
+
             <div className="min-h-screen flex items-center justify-center">
+
                 Loading...
+
             </div>
+
         );
+
     }
 
     return (
-        <div className="min-h-screen bg-slate-100">
+
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+
             <Navbar />
 
-            {/* Banner */}
-            <section className="max-w-7xl mx-auto px-6 py-8">
-                <div className="relative rounded-3xl overflow-hidden shadow-xl">
-                    {setting.banner && (
-                        <img
-                            src={`http://127.0.0.1:8000/storage/${setting.banner}`}
-                            alt="Banner"
-                            className="w-full h-[450px] object-cover"
-                        />
-                    )}
+            {/* HERO */}
 
-                    <div
-                        className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6"
-                        style={{
-                            backgroundColor: `${setting.primary_color}99`
-                        }}
-                    >
-                        <h1 className="text-5xl font-bold mb-4">
-                            {setting.hero_title || "Selamat Datang"}
-                        </h1>
-                    </div>
-                </div>
-            </section>
+            <HeroSlider 
+                banners={banners}
+                primaryColor={setting.primary_color}
+            />
 
-            {/* Menu Dropdown */}
-            <section className="max-w-7xl mx-auto px-6 pb-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
-                    {menus.map((menu, index) => (
-                        <div
-                            key={index}
-                            className="bg-white rounded-xl shadow-md overflow-hidden self-start"
-                        >
-                            <button
-                                onClick={() =>
-                                    setOpenMenu({
-                                        ...openMenu,
-                                        [index]: !openMenu[index]
-                                    })
-                                }
-                                className="
-                                    w-full
-                                    text-center
-                                    px-3
-                                    py-4
-                                    font-semibold
-                                    bg-white
-                                    hover:bg-slate-50
-                                    text-sm
-                                "
-                            >
-                                <span>{menu.title}</span>
+            <ServiceAccordion menus={menus} />
 
-                            </button>
+            <Footer />
 
-                            {openMenu[index] && (
-                                <div className="border-t">
-                                    {menu.items.map((item) => (
-                                        <Link
-                                            key={item.id}
-                                            to={item.path}
-                                            className="
-                                                block
-                                                px-3
-                                                py-2
-                                                text-sm
-                                                hover:bg-slate-100
-                                            "
-                                        >
-                                            {item.name}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </section>
         </div>
+
     );
+
 }
