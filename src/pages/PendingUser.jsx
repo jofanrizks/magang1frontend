@@ -2,32 +2,25 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import Swal from "sweetalert2";
 
+import Table from "../components/ui/Table";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+
 export default function PendingUser() {
 
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
-
         getUsers();
-
     }, []);
 
     async function getUsers() {
 
         try {
 
-            const res = await api.get(
-                "/users/pending"
-            );
+            const res = await api.get("/users/pending");
 
-            console.log(
-                "DATA PENDING:",
-                res.data
-            );
-
-            setUsers(
-                res.data.data
-            );
+            setUsers(res.data.data);
 
         } catch (err) {
 
@@ -41,9 +34,7 @@ export default function PendingUser() {
 
         try {
 
-            await api.post(
-                `/users/${id}/send-otp`
-            );
+            await api.post(`/users/${id}/send-otp`);
 
             Swal.fire(
                 "Berhasil",
@@ -66,25 +57,25 @@ export default function PendingUser() {
         }
 
     }
+
     async function rejectUser(id) {
+
         const result = await Swal.fire({
+
             title: "Reject User?",
             text: "User akan ditolak",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Ya, Reject",
             cancelButtonText: "Batal"
+
         });
 
-        if (!result.isConfirmed) {
-            return;
-        }
+        if (!result.isConfirmed) return;
 
         try {
 
-            await api.post(
-                `/users/${id}/reject`
-            );
+            await api.post(`/users/${id}/reject`);
 
             Swal.fire(
                 "Berhasil",
@@ -107,133 +98,108 @@ export default function PendingUser() {
         }
 
     }
-        return (
 
-        <div className="p-6">
+    const columns = [
 
-            <h1 className="text-2xl font-bold mb-6">
-                Pending User
-            </h1>
+        {
+            key: "nik",
+            title: "NIK"
+        },
 
-            <div className="bg-white rounded-xl shadow overflow-hidden">
+        {
+            key: "nama",
+            title: "Nama"
+        },
 
-                <table className="w-full">
+        {
+            key: "jabatan",
+            title: "Jabatan"
+        },
 
-                    <thead>
+        {
+            key: "telp",
+            title: "No HP"
+        },
 
-                        <tr className="border-b bg-slate-100">
+        {
+            key: "instansi",
+            title: "Instansi"
+        },
 
-                            <th className="p-4 text-left">
-                                NIK
-                            </th>
+        {
+            key: "approval",
+            title: "Approval",
+            render: () => (
+                <Badge color="yellow">
+                    Pending
+                </Badge>
+            )
+        },
 
-                            <th className="p-4 text-left">
-                                Nama
-                            </th>
+        {
+            key: "action",
+            title: "Aksi",
+            render: (user) => (
 
-                            <th className="p-4 text-left">
-                                Instansi
-                            </th>
+                <div className="flex gap-2">
 
-                            <th className="p-4 text-center">
-                                Aksi
-                            </th>
+                    <Button
+                        onClick={() => approveUser(user.id)}
+                        className="
+                            w-auto
+                            bg-green-600
+                            hover:bg-green-700
+                            px-4
+                            py-2
+                            text-sm
+                        "
+                    >
+                        Approve
+                    </Button>
 
-                        </tr>
+                    <Button
+                        onClick={() => rejectUser(user.id)}
+                        className="
+                            w-auto
+                            bg-red-600
+                            hover:bg-red-700
+                            px-4
+                            py-2
+                            text-sm
+                        "
+                    >
+                        Reject
+                    </Button>
 
-                    </thead>
+                </div>
 
-                    <tbody>
+            )
+        }
 
-                        {users.length > 0 ? (
+    ];
 
-                            users.map((user) => (
+    return (
 
-                                <tr
-                                    key={user.id}
-                                    className="border-b"
-                                >
+        <div className="space-y-8">
 
-                                    <td className="p-4">
-                                        {user.nik}
-                                    </td>
+            <div>
 
-                                    <td className="p-4">
-                                        {user.nama}
-                                    </td>
+                <h1 className="text-3xl font-bold">
+                    Pending User
+                </h1>
 
-                                    <td className="p-4">
-                                        {user.instansi}
-                                    </td>
-
-                                    <td className="p-4 text-center">
-
-                                        <div className="flex justify-center gap-2">
-
-                                            <button
-                                                onClick={() =>
-                                                    approveUser(user.id)
-                                                }
-                                                className="
-                                                    bg-green-600
-                                                    hover:bg-green-700
-                                                    text-white
-                                                    px-4
-                                                    py-2
-                                                    rounded-lg
-                                                "
-                                            >
-                                                Approve
-                                            </button>
-
-                                            <button
-                                                onClick={() =>
-                                                    rejectUser(user.id)
-                                                }
-                                                className="
-                                                    bg-red-600
-                                                    hover:bg-red-700
-                                                    text-white
-                                                    px-4
-                                                    py-2
-                                                    rounded-lg
-                                                "
-                                            >
-                                                Reject
-                                            </button>
-
-                                        </div>
-
-                                    </td>
-
-                                </tr>
-
-                            ))
-
-                        ) : (
-
-                            <tr>
-
-                                <td
-                                    colSpan="4"
-                                    className="
-                                        p-6
-                                        text-center
-                                        text-gray-500
-                                    "
-                                >
-                                    Tidak ada user pending
-                                </td>
-
-                            </tr>
-
-                        )}
-
-                    </tbody>
-
-                </table>
+                <p className="text-gray-500 mt-2">
+                    Daftar pengguna yang menunggu persetujuan admin
+                </p>
 
             </div>
+
+            <Table
+                // title="Data Pending User"
+                // subtitle={`Total ${users.length} pengguna menunggu persetujuan.`}
+                columns={columns}
+                data={users}
+            />
 
         </div>
 

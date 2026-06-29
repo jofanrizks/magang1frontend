@@ -16,6 +16,9 @@ import ApprovedUser from "../pages/ApprovedUser";
 import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
+import MenuPage from "../pages/MenuPage";
+import Content from "../pages/Content";
+
 export default function AppRoutes() {
 
     return (
@@ -106,6 +109,18 @@ export default function AppRoutes() {
                         }
                     />
                 </Route>
+
+                <Route
+                    path="/menu/:id"
+                    element={<MenuPage />}
+                />
+
+                <Route
+                    path="/content"
+                    element={<Content />}
+                />
+
+
 
             </Routes>
 
