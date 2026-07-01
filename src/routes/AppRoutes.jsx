@@ -8,7 +8,6 @@ import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
-import MenuPage from "../pages/MenuPages";
 
 import PendingUser from "../pages/PendingUser";
 import ApprovedUser from "../pages/ApprovedUser";
@@ -108,19 +107,19 @@ export default function AppRoutes() {
                             <ApprovedUser />
                         }
                     />
+                    <Route
+                        path="/content"
+                        element={
+                            <Content />
+                        }
+                    />
+                
                 </Route>
 
                 <Route
                     path="/menu/:id"
                     element={<MenuPage />}
                 />
-
-                <Route
-                    path="/content"
-                    element={<Content />}
-                />
-
-
 
             </Routes>
 

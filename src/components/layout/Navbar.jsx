@@ -6,6 +6,8 @@ import {
     User,
     LogOut
 } from "lucide-react";
+import UserDrawer from "./UserDrawer";
+
 
 export default function Navbar() {
 
@@ -13,6 +15,7 @@ export default function Navbar() {
 
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);    
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -171,19 +174,30 @@ export default function Navbar() {
 
                         <>
                             <button
-                                onClick={logout}
+                                onClick={() => setDrawerOpen(true)}
                                 className="
-                                    px-5
-                                    py-2
+                                    w-11
+                                    h-11
                                     rounded-xl
-                                    bg-red-600
-                                    hover:bg-red-700
-                                    text-white
+                                    bg-white/20
+                                    backdrop-blur
+                                    hover:bg-white/30
                                     transition
+                                    flex
+                                    items-center
+                                    justify-center
+                                    cursor-pointer
                                 "
                             >
 
-                                Logout
+                                <User 
+                                    size={20}
+                                    className={
+                                        scrolled
+                                            ? "text-slate-700"
+                                            : "text-white"
+                                    }
+                                />
 
                             </button>
 
@@ -268,30 +282,36 @@ export default function Navbar() {
                         <a href="#">Kontak</a>
 
                         <button
-                            onClick={logout}
+                            onClick={() => setDrawerOpen(true)}
                             className="
-                                mt-4
-                                bg-red-600
-                                text-white
+                                w-11
+                                h-11
                                 rounded-xl
-                                py-3
+                                bg-blue-600
+                                hover:scale-105
+                                transition
+                                flex
+                                items-center
+                                justify-center
                             "
                         >
-
-                            <LogOut
-                                size={18}
-                                className="inline mr-2"
-                            />
-
-                            Logout
+                            <User size={20}/>
 
                         </button>
+
 
                     </div>
 
                 </div>
 
             )}
+            
+            <UserDrawer 
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+                user={user}
+                logout={logout}
+            />
 
         </header>
 

@@ -33,6 +33,10 @@ export default function MenuPage() {
                         bg-blue-500
                         text-white
                         rounded-lg
+                        hover:bg-blue-600
+                        transition
+                        duration-300
+                        ease-in-out
                     "
                 >
                     Kembali ke Home

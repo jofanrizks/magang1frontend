@@ -104,16 +104,22 @@ export default function Table({
 
                                 <th
                                     key={column.key}
-                                    className="
+                                    className={`
                                         px-6
                                         py-4
-                                        text-left
                                         text-sm
                                         font-semibold
                                         uppercase
                                         tracking-wide
                                         text-slate-600
-                                    "
+                                        ${
+                                            column.align === "center"
+                                                ? "text-center"
+                                                : column.align === "right"
+                                                ? "text-right"
+                                                : "text-left"
+                                        }
+                                    `}  
                                 >
                                     {column.title}
                                 </th>
@@ -148,7 +154,19 @@ export default function Table({
 
                                         <td
                                             key={column.key}
-                                            className="px-6 py-4 text-sm text-slate-700"
+                                            className={`
+                                                px-6
+                                                py-4
+                                                text-sm
+                                                text-slate-700
+                                                ${
+                                                    column.align === "center"
+                                                        ? "text-center"
+                                                        : column.align === "right"
+                                                        ? "text-right"
+                                                        : "text-left"
+                                                }
+                                            `}
                                         >
 
                                             {

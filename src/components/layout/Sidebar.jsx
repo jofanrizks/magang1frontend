@@ -37,14 +37,9 @@ export default function Sidebar() {
             icon: CheckCircle2
         },
         {
-            name: "Profile",
-            path: "/profile",
-            icon: User
-        },
-        {
             name: "Content",
             path: "/content",
-            icon: Clock3
+            icon: User
         }
     ];
 
@@ -114,13 +109,13 @@ export default function Sidebar() {
                             {collapsed ? (
 
                                 <>
-                                    <span className="group-hover:hidden">
+                                    <span className="group-hover:hidden cursor-pointer">
                                         S
                                     </span>
 
                                     <PanelLeftOpen
                                         size={18}
-                                        className="hidden group-hover:block"
+                                        className="hidden group-hover:block cursor-pointer"
                                     />
                                 </>
 
@@ -198,6 +193,7 @@ export default function Sidebar() {
                                         justify-center
                                         hover:bg-slate-800
                                         transition
+                                        cursor-pointer
                                     "
                                 >
 
@@ -380,15 +376,12 @@ export default function Sidebar() {
                             flex
                             items-center
                             justify-center
-
                             gap-3
-
                             rounded-xl
-
                             bg-red-600
                             hover:bg-red-700
-
                             transition
+                            cursor-pointer
                         "
                     >
 

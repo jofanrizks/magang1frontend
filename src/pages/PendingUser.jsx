@@ -103,32 +103,38 @@ export default function PendingUser() {
 
         {
             key: "nik",
-            title: "NIK"
+            title: "NIK",
+            align: "center"
         },
 
         {
             key: "nama",
-            title: "Nama"
+            title: "Nama",
+            align: "center"
         },
 
         {
             key: "jabatan",
-            title: "Jabatan"
+            title: "Jabatan",
+            align: "center"
         },
 
         {
             key: "telp",
-            title: "No HP"
+            title: "No HP",
+            align: "center"
         },
 
         {
             key: "instansi",
-            title: "Instansi"
+            title: "Instansi",
+            align: "center"
         },
 
         {
             key: "approval",
             title: "Approval",
+            align: "center",
             render: () => (
                 <Badge color="yellow">
                     Pending
@@ -139,6 +145,7 @@ export default function PendingUser() {
         {
             key: "action",
             title: "Aksi",
+            align: "center",
             render: (user) => (
 
                 <div className="flex gap-2">

@@ -32,27 +32,32 @@ export default function ApprovedUser() {
 
         {
             key: "nik",
-            title: "NIK"
+            title: "NIK",
+            align: "center"
         },
 
         {
             key: "nama",
-            title: "Nama"
+            title: "Nama",
+            align: "center"
         },
 
         {
             key: "jabatan",
-            title: "Jabatan"
+            title: "Jabatan",
+            align: "center"
         },
 
         {
             key: "telp",
-            title: "No HP"
+            title: "No HP",
+            align: "center"
         },
 
         {
             key: "instansi",
-            title: "Instansi"
+            title: "Instansi",
+            align: "center"
         },
 
     ];

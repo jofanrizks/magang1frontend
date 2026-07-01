@@ -14,6 +14,7 @@ export default function Button({
             p-3
             rounded-xl
             font-semibold
+            cursor-pointer
             ${className}
             `}
         >
