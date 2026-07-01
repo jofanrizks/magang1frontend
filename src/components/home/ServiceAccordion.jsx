@@ -114,6 +114,7 @@ export default function ServiceAccordion({ menus }) {
                                 text-slate-800
                                 hover:bg-slate-50
                                 transition
+                                cursor-pointer
                             "
 
                         >

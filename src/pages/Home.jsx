@@ -1,48 +1,11 @@
-import { useEffect, useState } from "react";
-
-import api from "../api/axios";
 import Navbar from "../components/layout/Navbar";
 import HeroSlider from "../components/home/HeroSlider";
 import ServiceAccordion from "../components/home/ServiceAccordion";
 import Footer from "../components/home/Footer";
 
-import {
-    ChevronDown,
-    ChevronUp
-} from "lucide-react";
-
 export default function Home() {
 
-    const [setting, setSetting] = useState(null);
-    const [banners, setBanners] = useState([]);
-
-    const [openMenu, setOpenMenu] = useState(null);
-
-    useEffect(() => {
-
-        getSetting();
-        getBanners();
-
-    }, []);
-
-    async function getSetting() {
-
-        try {
-
-            const res = await api.get("/settings");
-            setSetting(res.data);
-
-        } catch (err) {
-
-            console.log(err);
-
-        }
-
-    }
-
-
     const menus = [
-
         {
             title: "Layanan 1",
             items: [
@@ -52,7 +15,6 @@ export default function Home() {
                 { id: 4, name: "Menu 4", path: "/menu/4" }
             ]
         },
-
         {
             title: "Layanan 2",
             items: [
@@ -62,7 +24,6 @@ export default function Home() {
                 { id: 8, name: "Menu 8", path: "/menu/8" }
             ]
         },
-
         {
             title: "Layanan 3",
             items: [
@@ -72,7 +33,6 @@ export default function Home() {
                 { id: 12, name: "Menu 12", path: "/menu/12" }
             ]
         },
-
         {
             title: "Layanan 4",
             items: [
@@ -82,7 +42,6 @@ export default function Home() {
                 { id: 16, name: "Menu 16", path: "/menu/16" }
             ]
         },
-
         {
             title: "Layanan 5",
             items: [
@@ -92,64 +51,17 @@ export default function Home() {
                 { id: 20, name: "Menu 20", path: "/menu/20" }
             ]
         }
-
     ];
 
-
-    async function getBanners() {
-
-        try {
-
-            const res = await api.get("/banner");
-                setBanners(
-                    res.data.data.map((banner) => ({
-                        image: `http://127.0.0.1:8000/storage/${banner.image}`,
-                        title: banner.title,
-                        description: banner.description
-                    }))
-                );
-
-        } catch (err) {
-
-            console.log(err);            
-
-        }
-
-    }
-    
-    if (!setting) {
-
-        return (
-
-            <div className="min-h-screen flex items-center justify-center">
-
-                Loading...
-
-            </div>
-
-        );
-
-    }
-
     return (
-
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-
             <Navbar />
 
-            {/* HERO */}
-
-            <HeroSlider 
-                banners={banners}
-                primaryColor={setting.primary_color}
-            />
+            <HeroSlider />
 
             <ServiceAccordion menus={menus} />
 
             <Footer />
-
         </div>
-
     );
-
 }
