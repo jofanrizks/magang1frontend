@@ -1,6 +1,5 @@
 import {
     X,
-    User,
     LogOut,
     Building2,
     Phone,
@@ -14,7 +13,7 @@ export default function UserDrawer({
     onClose,
     user,
     logout,
-    disable
+    onDisable
 
 }) {
 
@@ -32,12 +31,9 @@ export default function UserDrawer({
                     bg-black/40
                     transition
                     z-40
-
-                    ${
-                        open
-                            ? "opacity-100 visible"
-                            : "opacity-0 invisible"
-                    }
+                    ${open
+                        ? "opacity-100 visible"
+                        : "opacity-0 invisible"}
                 `}
             />
 
@@ -55,7 +51,6 @@ export default function UserDrawer({
                     z-50
                     transition-all
                     duration-300
-
                     ${
                         open
                             ? "translate-x-0"
@@ -69,20 +64,19 @@ export default function UserDrawer({
                 <div className="flex items-center justify-between p-6 border-b">
 
                     <h2 className="font-bold text-xl">
-
                         Profil
-
                     </h2>
 
-                    <button onClick={onClose}
+                    <button
+                        onClick={onClose}
                         className="
-                            hover:bg-slate-300
-                            rounded-full
-                            duration-300
-                            cursor-pointer
                             p-2
-                            "
-                        >
+                            rounded-full
+                            hover:bg-slate-200
+                            transition
+                            cursor-pointer
+                        "
+                    >
 
                         <X />
 
@@ -114,20 +108,16 @@ export default function UserDrawer({
                     </div>
 
                     <h3 className="mt-5 text-xl font-bold">
-
                         {user?.nama}
-
                     </h3>
 
                     <p className="text-slate-500">
-
                         {user?.nik}
-
                     </p>
 
                 </div>
 
-                {/* Info */}
+                {/* Informasi */}
 
                 <div className="px-6 space-y-5">
 
@@ -183,27 +173,27 @@ export default function UserDrawer({
 
                 {/* Footer */}
 
-                <div className="absolute bottom-0 w-full p-6 space-y-2">
+                <div className="absolute bottom-0 w-full p-6 space-y-3">
 
                     <button
-                        onClick={logout}
+                        onClick={onDisable}
                         className="
                             w-full
+                            py-3
+                            rounded-xl
                             bg-orange-500
                             hover:bg-orange-600
                             text-white
-                            rounded-xl
-                            py-3
                             flex
-                            justify-center
                             items-center
+                            justify-center
                             gap-2
                             transition
                             cursor-pointer
                         "
                     >
 
-                        <UserX size={18}/>
+                        <UserX size={18} />
 
                         Disable Account
 
@@ -213,21 +203,21 @@ export default function UserDrawer({
                         onClick={logout}
                         className="
                             w-full
+                            py-3
+                            rounded-xl
                             bg-red-600
                             hover:bg-red-700
                             text-white
-                            rounded-xl
-                            py-3
                             flex
-                            justify-center
                             items-center
+                            justify-center
                             gap-2
                             transition
                             cursor-pointer
                         "
                     >
 
-                        <LogOut size={18}/>
+                        <LogOut size={18} />
 
                         Logout
 

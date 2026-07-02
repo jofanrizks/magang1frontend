@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { getAllUsers } from "../services/userService";
+import { getAllUsers } from "../services/adminService";
+
+import api from "../api/axios";
 
 import Table from "../components/ui/Table";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Swal from "sweetalert2";
-import api from "../api/axios";
 
 import DashboardStats from "../components/dashboard/DashboardStats";
 import dashboardStats from "../utils/dashboardStats";
 
-import userTableColumns from "../components/dashboard/userTableColumns";
+import userTableColumns from "../components/dashboard/UserTableColumns";
 
 import useUserModal from "../hooks/userModal";
 import UserDetailModal from "../components/dashboard/UserDetailModal";
@@ -37,6 +35,31 @@ export default function Dashboard() {
 
         }
 
+    }
+
+    async function toggleUser(user) {
+
+        try {
+    
+            if (user.sts === "aktif") {
+    
+                await api.post(`/users/${user.id}/disable`);
+    
+            } else {
+    
+                await api.post(`/users/${user.id}/enable`);
+    
+            }
+    
+            fetchUsers();
+            closeUser();
+    
+        } catch (err) {
+    
+            console.log(err);
+    
+        }
+    
     }
 
     // Modal User
@@ -84,6 +107,7 @@ export default function Dashboard() {
             <UserDetailModal 
                 user={selectedUser}
                 onClose={closeUser}
+                onToggleStatus={toggleUser}
             />
 
         </div>

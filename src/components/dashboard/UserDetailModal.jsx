@@ -5,10 +5,11 @@ import {
     Briefcase,
     Building2,
     Phone,
-    Mail,
+    RefreshCw,
     Calendar,
     Shield,
-    BadgeCheck
+    BadgeCheck,
+    Logs
 } from "lucide-react";
 
 import Badge from "../ui/Badge";
@@ -16,7 +17,8 @@ import Badge from "../ui/Badge";
 export default function UserDetailModal({
 
     user,
-    onClose
+    onClose,
+    onToggleStatus
 
 }) {
 
@@ -131,9 +133,12 @@ export default function UserDetailModal({
                     />
 
                     <InfoItem
-                        icon={<Mail size={18} />}
-                        label="Email"
-                        value={user.email}
+                        icon={<RefreshCw size={18} />}
+                        label="Update"
+                        value={user.tglupdate
+                                ? new Date(user.tglupdate).toLocaleDateString("id-ID")
+                                : "-"
+                            }
                     />
 
                     <InfoItem
@@ -142,6 +147,16 @@ export default function UserDetailModal({
                         value={
                             new Date(
                                 user.tgldaftar
+                            ).toLocaleDateString("id-ID")
+                        }
+                    />
+
+                    <InfoItem
+                        icon={<Calendar size={18} />}
+                        label="Tanggal Disable"
+                        value={
+                            new Date(
+                                user.tgldisabled
                             ).toLocaleDateString("id-ID")
                         }
                     />
@@ -177,7 +192,7 @@ export default function UserDetailModal({
                             <BadgeCheck size={18} />
 
                             <span>Approval</span>
-
+                            
                         </div>
 
                         <Badge
@@ -210,21 +225,22 @@ export default function UserDetailModal({
 
                     <button
 
-                        onClick={onClose}
-
-                        className="
+                        onClick={() => onToggleStatus(user)}
+                        className={`
                             px-5
                             py-2
                             rounded-lg
-                            bg-red-500
                             text-white
-                            hover:bg-red-300
                             cursor-pointer
-                        "
-
+                            ${
+                                user.sts === "aktif"
+                                    ? "bg-red-500 hover:bg-red-600"
+                                    : "bg-green-600 hover:bg-green-700"
+                            }
+                        `}
                     >
 
-                        Dissable
+                        {user.sts === "aktif" ? "Disable" : "Activate"}
 
                     </button>
                     

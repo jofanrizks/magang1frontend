@@ -7,6 +7,7 @@ import {
     LogOut
 } from "lucide-react";
 import UserDrawer from "./UserDrawer";
+import useDisableAccount from "../../hooks/useDisableAccount";
 
 
 export default function Navbar() {
@@ -15,7 +16,8 @@ export default function Navbar() {
 
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [drawerOpen, setDrawerOpen] = useState(false);    
+    const [drawerOpen, setDrawerOpen] = useState(false);  
+    const { handleDisable } = useDisableAccount(logout);  
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -311,6 +313,7 @@ export default function Navbar() {
                 onClose={() => setDrawerOpen(false)}
                 user={user}
                 logout={logout}
+                onDisable={handleDisable}
             />
 
         </header>
