@@ -1,6 +1,5 @@
 import {
     X,
-    User,
     LogOut,
     Building2,
     Phone,
@@ -69,23 +68,20 @@ export default function UserDrawer({
                 <div className="flex items-center justify-between p-6 border-b">
 
                     <h2 className="font-bold text-xl">
-
                         Profil
-
                     </h2>
 
-                    <button onClick={onClose}
+                    <button
+                        onClick={onClose}
                         className="
                             hover:bg-slate-300
                             rounded-full
                             duration-300
                             cursor-pointer
                             p-2
-                            "
-                        >
-
+                        "
+                    >
                         <X />
-
                     </button>
 
                 </div>
@@ -108,21 +104,15 @@ export default function UserDrawer({
                             font-bold
                         "
                     >
-
                         {user?.nama?.charAt(0)}
-
                     </div>
 
                     <h3 className="mt-5 text-xl font-bold">
-
                         {user?.nama}
-
                     </h3>
 
                     <p className="text-slate-500">
-
                         {user?.nik}
-
                     </p>
 
                 </div>
@@ -132,17 +122,14 @@ export default function UserDrawer({
                 <div className="px-6 space-y-5">
 
                     <div className="flex gap-4">
-
                         <Briefcase />
 
                         <div>
-
                             <p className="text-sm text-slate-400">
                                 Jabatan
                             </p>
 
                             <p>{user?.jabatan}</p>
-
                         </div>
 
                     </div>
@@ -186,7 +173,7 @@ export default function UserDrawer({
                 <div className="absolute bottom-0 w-full p-6 space-y-2">
 
                     <button
-                        onClick={logout}
+                        onClick={disable}
                         className="
                             w-full
                             bg-orange-500
@@ -203,7 +190,7 @@ export default function UserDrawer({
                         "
                     >
 
-                        <UserX size={18}/>
+                        <UserX size={18} />
 
                         Disable Account
 
@@ -227,7 +214,7 @@ export default function UserDrawer({
                         "
                     >
 
-                        <LogOut size={18}/>
+                        <LogOut size={18} />
 
                         Logout
 

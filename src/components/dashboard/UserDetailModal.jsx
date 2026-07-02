@@ -5,10 +5,10 @@ import {
     Briefcase,
     Building2,
     Phone,
-    Mail,
     Calendar,
     Shield,
-    BadgeCheck
+    BadgeCheck,
+    History
 } from "lucide-react";
 
 import Badge from "../ui/Badge";
@@ -16,7 +16,9 @@ import Badge from "../ui/Badge";
 export default function UserDetailModal({
 
     user,
-    onClose
+    onClose,
+    onDisable,
+    onEnable
 
 }) {
 
@@ -42,8 +44,9 @@ export default function UserDetailModal({
                     rounded-2xl
                     shadow-xl
                     w-full
-                    max-w-2xl
-                    overflow-hidden
+                    max-w-3xl
+                    max-h-[90vh]
+                    overflow-y-auto
                 "
             >
 
@@ -77,9 +80,7 @@ export default function UserDetailModal({
                     </div>
 
                     <button
-
                         onClick={onClose}
-
                         className="
                             p-2
                             rounded-lg
@@ -87,7 +88,6 @@ export default function UserDetailModal({
                             transition
                             cursor-pointer
                         "
-
                     >
 
                         <X size={22} />
@@ -131,18 +131,32 @@ export default function UserDetailModal({
                     />
 
                     <InfoItem
-                        icon={<Mail size={18} />}
-                        label="Email"
-                        value={user.email}
+                        icon={<Calendar size={18} />}
+                        label="Tanggal Daftar"
+                        value={
+                            user.tgldaftar
+                                ? new Date(user.tgldaftar).toLocaleString("id-ID")
+                                : "-"
+                        }
                     />
 
                     <InfoItem
                         icon={<Calendar size={18} />}
-                        label="Tanggal Daftar"
+                        label="Tanggal Approval"
                         value={
-                            new Date(
-                                user.tgldaftar
-                            ).toLocaleDateString("id-ID")
+                            user.tglapproval
+                                ? new Date(user.tglapproval).toLocaleString("id-ID")
+                                : "-"
+                        }
+                    />
+
+                    <InfoItem
+                        icon={<Calendar size={18} />}
+                        label="Tanggal Disabled"
+                        value={
+                            user.tgldisabled
+                                ? new Date(user.tgldisabled).toLocaleString("id-ID")
+                                : "-"
                         }
                     />
 
@@ -184,13 +198,89 @@ export default function UserDetailModal({
                             color={
                                 user.approval === "approved"
                                     ? "green"
-                                    : "yellow"
+                                    : user.approval === "pending"
+                                    ? "yellow"
+                                    : "red"
                             }
                         >
 
                             {user.approval}
 
                         </Badge>
+
+                    </div>
+
+                </div>
+
+                {/* Activity Log */}
+
+                <div className="px-6 pb-6">
+
+                    <div className="flex items-center gap-2 mb-4">
+
+                        <History size={18} />
+
+                        <h3 className="text-lg font-semibold">
+
+                            Riwayat Aktivitas
+
+                        </h3>
+
+                    </div>
+
+                    <div className="border rounded-xl overflow-hidden">
+
+                        {
+
+                            user.activity_logs?.length > 0 ? (
+
+                                user.activity_logs.map((log) => (
+
+                                    <div
+                                        key={log.id}
+                                        className="border-b last:border-b-0 p-4"
+                                    >
+
+                                        <div className="flex justify-between">
+
+                                            <h4 className="font-semibold">
+
+                                                {log.activity}
+
+                                            </h4>
+
+                                            <span className="text-sm font-medium text-slate-500">
+                                                {new Date(log.created_at).toLocaleString("id-ID", {
+                                                    day: "2-digit",
+                                                    month: "long",
+                                                    year: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </span>
+                                        </div>
+
+                                        <p className="text-gray-600 mt-1">
+
+                                            {log.description}
+
+                                        </p>
+
+                                    </div>
+
+                                ))
+
+                            ) : (
+
+                                <div className="p-6 text-center text-gray-400">
+
+                                    Belum ada riwayat aktivitas.
+
+                                </div>
+
+                            )
+
+                        }
 
                     </div>
 
@@ -205,29 +295,72 @@ export default function UserDetailModal({
                         border-t
                         flex
                         justify-end
+                        gap-3
                     "
                 >
 
+                    {
+                        user.sts === "aktif" ? (
+
+                            <button
+                                onClick={() => onDisable(user.id)}
+                                className="
+                                    px-5
+                                    py-2
+                                    rounded-lg
+                                    bg-red-600
+                                    text-white
+                                    hover:bg-red-700
+                                    transition
+                                    cursor-pointer
+                                "
+                            >
+
+                                Disable User
+
+                            </button>
+
+                        ) : (
+
+                            <button
+                                onClick={() => onEnable(user.id)}
+                                className="
+                                    px-5
+                                    py-2
+                                    rounded-lg
+                                    bg-green-600
+                                    text-white
+                                    hover:bg-green-700
+                                    transition
+                                    cursor-pointer
+                                "
+                            >
+
+                                Enable User
+
+                            </button>
+
+                        )
+                    }
+
                     <button
-
                         onClick={onClose}
-
                         className="
                             px-5
                             py-2
                             rounded-lg
-                            bg-red-500
+                            bg-slate-700
                             text-white
-                            hover:bg-red-300
+                            hover:bg-slate-800
+                            transition
                             cursor-pointer
                         "
-
                     >
 
-                        Dissable
+                        Tutup
 
                     </button>
-                    
+
                 </div>
 
             </div>

@@ -14,6 +14,10 @@ export default function dashboardStats(users) {
 
         aktif: users.filter(
             user => user.sts === "aktif"
+        ).length,
+
+        disabled: users.filter(
+            user => user.sts === "disabled"
         ).length
 
     };

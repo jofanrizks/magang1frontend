@@ -1,27 +1,53 @@
 import { useEffect, useState } from "react";
-import { getAllUsers } from "../services/userService";
+
+import {
+    getAllUsers,
+    getUserLog,
+    disableUser,
+    enableUser
+} from "../services/userService";
 
 import Table from "../components/ui/Table";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Swal from "sweetalert2";
-import api from "../api/axios";
 
 import DashboardStats from "../components/dashboard/DashboardStats";
 import dashboardStats from "../utils/dashboardStats";
 
-import userTableColumns from "../components/dashboard/userTableColumns";
+import userTableColumns from "../components/dashboard/UserTableColumns";
 
-import useUserModal from "../hooks/userModal";
 import UserDetailModal from "../components/dashboard/UserDetailModal";
 
 export default function Dashboard() {
 
     const [users, setUsers] = useState([]);
 
+    const [selectedUser, setSelectedUser] = useState(null);
+
     useEffect(() => {
+
         fetchUsers();
+
     }, []);
+
+
+    async function handleDisable(id) {
+
+        try {
+            await disableUser(id);
+            await fetchUsers();
+            closeUser();
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    async function handleEnable(id) {
+        try {
+            await enableUser(id);
+            await fetchUsers();
+            closeUser();
+        } catch (err) {
+            console.log(err);
+        }
+    }
 
     async function fetchUsers() {
 
@@ -39,38 +65,56 @@ export default function Dashboard() {
 
     }
 
-    // Modal User
-    const {selectedUser, openUser, closeUser} = useUserModal();
-    
-    // Statistik Dashboard
+    async function openUser(user) {
+
+        try {
+
+            const res = await getUserLog(user.id);
+
+            setSelectedUser(
+                res.data.data
+            );
+
+        } catch (err) {
+
+            console.log(err);
+
+        }
+
+    }
+
+    function closeUser() {
+
+        setSelectedUser(null);
+
+    }
+
     const stats = dashboardStats(users);
 
-    // Kolom Table
-    const columns = userTableColumns(openUser);
-
+    const columns =
+        userTableColumns(openUser);
 
     return (
 
         <div className="space-y-8">
 
-            {/* Header */}
-
             <div>
 
                 <h1 className="text-3xl font-bold">
+
                     Dashboard Admin
+
                 </h1>
 
                 <p className="text-gray-500 mt-2">
+
                     Monitoring dan pengelolaan seluruh pengguna sistem.
+
                 </p>
 
             </div>
 
-            {/* Report */}
             <DashboardStats stats={stats} />
-
-            {/* Data User */}
 
             <Table
                 title="Data User"
@@ -81,9 +125,11 @@ export default function Dashboard() {
                 searchPlaceHolder="Cari User"
             />
 
-            <UserDetailModal 
+            <UserDetailModal
                 user={selectedUser}
                 onClose={closeUser}
+                onDisable={handleDisable}
+                onEnable={handleEnable}
             />
 
         </div>

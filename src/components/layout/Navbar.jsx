@@ -7,8 +7,12 @@ import {
     LogOut
 } from "lucide-react";
 import UserDrawer from "./UserDrawer";
+import {
+    sendDisableOtp,
+    disableAccount
+} from "../../services/userService";
 
-
+import Swal from "sweetalert2";
 export default function Navbar() {
 
     const navigate = useNavigate();
@@ -43,6 +47,82 @@ export default function Navbar() {
         localStorage.removeItem("user");
 
         navigate("/login");
+
+    }
+    
+    async function handleDisableAccount() {
+
+        const { value: password } = await Swal.fire({
+            title: "Disable Account",
+            text: "Masukkan password untuk melanjutkan",
+            input: "password",
+            inputPlaceholder: "Password",
+            showCancelButton: true,
+            confirmButtonText: "Kirim OTP",
+            cancelButtonText: "Batal"
+        });
+
+        if (!password) return;
+
+        try {
+
+            await sendDisableOtp(password);
+
+            while (true) {
+
+                const { value: otp, isDismissed } = await Swal.fire({
+                    title: "Verifikasi OTP",
+                    text: "Masukkan kode OTP yang dikirim ke WhatsApp",
+                    input: "text",
+                    inputPlaceholder: "4 Digit OTP",
+                    showCancelButton: true,
+                    confirmButtonText: "Disable Account",
+                    cancelButtonText: "Batal",
+                    allowOutsideClick: false
+                });
+
+                if (isDismissed) return;
+
+                if (!otp) continue;
+
+                try {
+
+                    await disableAccount(otp);
+
+                    await Swal.fire({
+                        icon: "success",
+                        title: "Berhasil",
+                        text: "Akun berhasil dinonaktifkan."
+                    });
+
+                    logout();
+                    return;
+
+                } catch (err) {
+
+                    await Swal.fire({
+                        icon: "error",
+                        title: "OTP Salah",
+                        text:
+                            err.response?.data?.message ??
+                            "OTP tidak valid atau sudah expired."
+                    });
+
+                }
+
+            }
+
+        } catch (err) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text:
+                    err.response?.data?.message ??
+                    "Terjadi kesalahan."
+            });
+
+        }
 
     }
 
@@ -306,11 +386,12 @@ export default function Navbar() {
 
             )}
             
-            <UserDrawer 
+            <UserDrawer
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
                 user={user}
                 logout={logout}
+                disable={handleDisableAccount}
             />
 
         </header>
