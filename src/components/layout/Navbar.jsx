@@ -474,7 +474,6 @@ export default function Navbar() {
                             flex-col
                             p-5
                             gap-4
-                            
                         "
                     >
 
@@ -486,23 +485,150 @@ export default function Navbar() {
 
                         <a href="#">Kontak</a>
 
-                        <button
-                            onClick={() => setDrawerOpen(true)}
-                            className="
-                                w-11
-                                h-11
-                                rounded-xl
-                                bg-blue-600
-                                hover:scale-105
-                                transition
-                                flex
-                                items-center
-                                justify-center
-                            "
-                        >
-                            <User size={20}/>
+                        {!user ? (
 
-                        </button>
+                        <>
+                            <a 
+                                href="/login"
+                                className="
+                                font-semibold
+                                text-blue-700
+                                hover:text-blue-500
+                                transition
+                                cursor-pointer
+                                "
+                            >
+                                Login
+                            </a>
+
+                        </>
+
+                    ) : (
+
+                        <div
+                            ref={menuRef} 
+                            className="relative"
+                        >
+                            <button
+                                onClick={() => setProfileMenu(!profileMenu)}                                
+                                className={`
+                                    w-11
+                                    h-11
+                                    rounded-xl
+                                    flex
+                                    items-center
+                                    justify-center
+                                    transition
+                                    cursor-pointer
+                                    ${
+                                        scrolled
+                                            ? "bg-slate-100 hover:bg-slate-200"
+                                            : "bg-white/20 hover:bg-white/30 backdrop-blur"
+                                    }
+                                `}
+                            >
+
+                                <User
+                                    size={20}
+                                    className={
+                                        scrolled
+                                            ? "text-slate-700"
+                                            : "text-white"
+                                    }
+                                />
+                            </button>
+
+                            {profileMenu && (
+                                <div
+                                    className="
+                                        absolute
+                                        right-0
+                                        mt-3
+                                        w-56
+                                        bg-white
+                                        rounded-xl
+                                        shadow-xl
+                                        border-slate
+                                        overflow-hidden
+                                        z-50
+                                    "
+                                >
+                                    <button
+                                        onClick={() => {
+                                            setDrawerOpen(true);
+                                            setProfileMenu(false);
+                                        }}
+                                        className="
+                                            w-full
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-4
+                                            py-3
+                                            hover:bg-slate-100
+                                            transition
+                                            cursor-pointer
+                                        "
+                                    >
+                                        <User size={18} />
+                                        
+                                        Profil 
+
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            navigate("/content");
+                                            setProfileMenu(false);
+                                        }}
+                                        className="
+                                            w-full
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-4
+                                            py-3
+                                            hover:bg-slate-100
+                                            transition
+                                            cursor-pointer
+                                        "
+                                    >
+                                        <Settings size={18} />
+                                        Ganti Banner
+
+                                    </button>
+
+                                    <hr />
+
+                                    <button
+                                        onClick={() => {
+                                            logout();
+                                            setProfileMenu(false);
+                                        }}
+                                        className="
+                                            w-full
+                                            flex
+                                            items-center
+                                            gap-3
+                                            px-4
+                                            py-3
+                                            text-red-500
+                                            hover:bg-red-300
+                                            transition
+                                            cursor-pointer
+                                        "
+                                    >
+                                        <LogOut size={18} />
+                                        Logout
+
+                                    </button>
+
+                                </div>
+                            )}
+
+                        </div>
+                        
+                    )}
 
 
                     </div>
