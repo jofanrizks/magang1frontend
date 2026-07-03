@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route }
+import { BrowserRouter, Routes, Route, Navigate }
 from "react-router-dom";
 
 import Login from "../pages/Login";
@@ -57,25 +57,19 @@ export default function AppRoutes() {
 
                 {/* User */}
 
+                <Route 
+                    path="/"
+                    element={<Navigate to="/home" replace/>}
+                    />
+
                 <Route
                     path="/home"
-                    element={
-                        <ProtectedRoute
-                            role="user"
-                        >
-                            <Home />
-                        </ProtectedRoute>
-                    }
+                    element={<Home />}
                 />
+
                 <Route
                     path="/menu/:id"
-                    element={
-                        <ProtectedRoute
-                            role="user"
-                        >
-                            <MenuPage />
-                        </ProtectedRoute>
-                    }
+                    element={<MenuPage />}
                 />
 
                 {/* Admin */}

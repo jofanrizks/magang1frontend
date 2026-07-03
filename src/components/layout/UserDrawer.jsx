@@ -79,7 +79,6 @@ export default function UserDrawer({
                     >
 
                         <X />
-
                     </button>
 
                 </div>
@@ -102,9 +101,7 @@ export default function UserDrawer({
                             font-bold
                         "
                     >
-
                         {user?.nama?.charAt(0)}
-
                     </div>
 
                     <h3 className="mt-5 text-xl font-bold">
@@ -122,17 +119,14 @@ export default function UserDrawer({
                 <div className="px-6 space-y-5">
 
                     <div className="flex gap-4">
-
                         <Briefcase />
 
                         <div>
-
                             <p className="text-sm text-slate-400">
                                 Jabatan
                             </p>
 
                             <p>{user?.jabatan}</p>
-
                         </div>
 
                     </div>
@@ -176,7 +170,7 @@ export default function UserDrawer({
                 <div className="absolute bottom-0 w-full p-6 space-y-3">
 
                     <button
-                        onClick={onDisable}
+                        onClick={logout}
                         className="
                             w-full
                             py-3
@@ -196,30 +190,6 @@ export default function UserDrawer({
                         <UserX size={18} />
 
                         Disable Account
-
-                    </button>
-
-                    <button
-                        onClick={logout}
-                        className="
-                            w-full
-                            py-3
-                            rounded-xl
-                            bg-red-600
-                            hover:bg-red-700
-                            text-white
-                            flex
-                            items-center
-                            justify-center
-                            gap-2
-                            transition
-                            cursor-pointer
-                        "
-                    >
-
-                        <LogOut size={18} />
-
-                        Logout
 
                     </button>
 

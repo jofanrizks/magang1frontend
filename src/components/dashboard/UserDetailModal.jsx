@@ -5,11 +5,10 @@ import {
     Briefcase,
     Building2,
     Phone,
-    RefreshCw,
+    Mail,
     Calendar,
     Shield,
-    BadgeCheck,
-    Logs
+    BadgeCheck
 } from "lucide-react";
 
 import Badge from "../ui/Badge";
@@ -17,8 +16,7 @@ import Badge from "../ui/Badge";
 export default function UserDetailModal({
 
     user,
-    onClose,
-    onToggleStatus
+    onClose
 
 }) {
 
@@ -27,6 +25,7 @@ export default function UserDetailModal({
     return (
 
         <div
+            onClick={onClose}
             className="
                 fixed
                 inset-0
@@ -44,8 +43,9 @@ export default function UserDetailModal({
                     rounded-2xl
                     shadow-xl
                     w-full
-                    max-w-2xl
-                    overflow-hidden
+                    max-w-3xl
+                    max-h-[90vh]
+                    overflow-y-auto
                 "
             >
 
@@ -79,9 +79,7 @@ export default function UserDetailModal({
                     </div>
 
                     <button
-
                         onClick={onClose}
-
                         className="
                             p-2
                             rounded-lg
@@ -89,7 +87,6 @@ export default function UserDetailModal({
                             transition
                             cursor-pointer
                         "
-
                     >
 
                         <X size={22} />
@@ -133,21 +130,18 @@ export default function UserDetailModal({
                     />
 
                     <InfoItem
-                        icon={<RefreshCw size={18} />}
-                        label="Update"
-                        value={user.tglupdate
-                                ? new Date(user.tglupdate).toLocaleDateString("id-ID")
-                                : "-"
-                            }
+                        icon={<Mail size={18} />}
+                        label="Email"
+                        value={user.email}
                     />
 
                     <InfoItem
                         icon={<Calendar size={18} />}
-                        label="Tanggal Daftar"
+                        label="Tanggal Disabled"
                         value={
-                            new Date(
-                                user.tgldaftar
-                            ).toLocaleDateString("id-ID")
+                            user.tgldisabled
+                                ? new Date(user.tgldisabled).toLocaleString("id-ID")
+                                : "-"
                         }
                     />
 
@@ -199,13 +193,94 @@ export default function UserDetailModal({
                             color={
                                 user.approval === "approved"
                                     ? "green"
-                                    : "yellow"
+                                    : user.approval === "pending"
+                                    ? "yellow"
+                                    : "red"
                             }
                         >
 
                             {user.approval}
 
                         </Badge>
+
+                    </div>
+
+                </div>
+
+                {/* Activity Log */}
+
+                <div className="px-6 pb-6">
+
+                    <div className="flex items-center gap-2 mb-4">
+
+                        <History size={18} />
+
+                        <h3 className="text-lg font-semibold">
+
+                            Riwayat Aktivitas
+
+                        </h3>
+
+                    </div>
+
+                    <div className="border border-slate-300 rounded-xl overflow-hidden">
+
+                        {
+
+                            user.activity_logs?.length > 0 ? (
+
+                                user.activity_logs.map((log) => (
+
+                                    <div
+                                        key={log.id}
+                                        className="border border-slate-300 p-3"
+                                    >
+
+                                        <div className="flex justify-between items-start">
+
+                                            <div>
+
+                                                <h4 className="font-semibold">
+                                                    {log.activity}
+                                                </h4>
+
+                                                <p className="text-sm text-slate-500 mt-1">
+                                                    IP Address : {log.ip_address ?? "-"}
+                                                </p>
+
+                                            </div>
+
+                                            <span className="text-sm font-medium text-slate-500">
+                                                {new Date(log.created_at).toLocaleString("id-ID", {
+                                                    day: "2-digit",
+                                                    month: "long",
+                                                    year: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </span>
+
+                                        </div>
+
+                                        <p className="text-gray-600 mt-3">
+                                            {log.description}
+                                        </p>
+
+                                    </div>
+
+                                ))
+
+                            ) : (
+
+                                <div className="p-6 text-center text-gray-400">
+
+                                    Belum ada riwayat aktivitas.
+
+                                </div>
+
+                            )
+
+                        }
 
                     </div>
 
@@ -220,30 +295,74 @@ export default function UserDetailModal({
                         border-t
                         flex
                         justify-end
+                        gap-3
                     "
                 >
 
+                    {
+                        user.sts === "aktif" ? (
+
+                            <button
+                                onClick={() => onDisable(user.id)}
+                                className="
+                                    px-5
+                                    py-2
+                                    rounded-lg
+                                    bg-red-600
+                                    text-white
+                                    hover:bg-red-700
+                                    transition
+                                    cursor-pointer
+                                "
+                            >
+
+                                Disable User
+
+                            </button>
+
+                        ) : (
+
+                            <button
+                                onClick={() => onEnable(user.id)}
+                                className="
+                                    px-5
+                                    py-2
+                                    rounded-lg
+                                    bg-green-600
+                                    text-white
+                                    hover:bg-green-700
+                                    transition
+                                    cursor-pointer
+                                "
+                            >
+
+                                Enable User
+
+                            </button>
+
+                        )
+                    }
+
                     <button
 
-                        onClick={() => onToggleStatus(user)}
-                        className={`
+                        onClick={onClose}
+
+                        className="
                             px-5
                             py-2
                             rounded-lg
+                            bg-red-500
                             text-white
+                            hover:bg-red-300
                             cursor-pointer
-                            ${
-                                user.sts === "aktif"
-                                    ? "bg-red-500 hover:bg-red-600"
-                                    : "bg-green-600 hover:bg-green-700"
-                            }
-                        `}
+                        "
+
                     >
 
-                        {user.sts === "aktif" ? "Disable" : "Activate"}
+                        Dissable
 
                     </button>
-                    
+
                 </div>
 
             </div>

@@ -132,14 +132,14 @@ export default function ServiceAccordion({ menus }) {
                                     ? (
                                         <ChevronUp
                                             size={18}
-                                            className="text-blue-600"
+                                            className="text-red-600"
                                         />
                                     )
 
                                     : (
                                         <ChevronDown
                                             size={18}
-                                            className="text-slate-500"
+                                            className="text-red-500"
                                         />
                                     )
 
@@ -182,8 +182,8 @@ export default function ServiceAccordion({ menus }) {
                                                 py-4
                                                 text-sm
                                                 text-slate-600
-                                                hover:bg-blue-50
-                                                hover:text-blue-600
+                                                hover:bg-red-50
+                                                hover:text-red-600
                                                 transition
                                                 group
                                             "
