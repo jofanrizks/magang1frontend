@@ -8,7 +8,8 @@ import {
     Mail,
     Calendar,
     Shield,
-    BadgeCheck
+    BadgeCheck,
+    History
 } from "lucide-react";
 
 import Badge from "../ui/Badge";
@@ -16,7 +17,8 @@ import Badge from "../ui/Badge";
 export default function UserDetailModal({
 
     user,
-    onClose
+    onClose,
+    onDisable
 
 }) {
 
@@ -342,26 +344,6 @@ export default function UserDetailModal({
 
                         )
                     }
-
-                    <button
-
-                        onClick={onClose}
-
-                        className="
-                            px-5
-                            py-2
-                            rounded-lg
-                            bg-red-500
-                            text-white
-                            hover:bg-red-300
-                            cursor-pointer
-                        "
-
-                    >
-
-                        Dissable
-
-                    </button>
 
                 </div>
 

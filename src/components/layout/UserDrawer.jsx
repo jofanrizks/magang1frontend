@@ -28,7 +28,6 @@ export default function UserDrawer({
                 className={`
                     fixed
                     inset-0
-                    bg-black/40
                     transition
                     z-40
                     ${open
