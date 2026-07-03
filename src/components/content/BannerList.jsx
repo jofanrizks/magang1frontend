@@ -24,11 +24,7 @@ export default function BannerList() {
 
     async function handleDelete(id) {
 
-        if (!window.confirm("Hapus banner?")) {
-
-            return;
-
-        }
+        if (!window.confirm("Hapus banner?")) return;
 
         await deleteBanner(id);
 
@@ -38,52 +34,88 @@ export default function BannerList() {
 
     return (
 
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="space-y-5">
 
-            <h2 className="text-xl font-semibold mb-6">
+            <div>
 
-                Banner
+                <h2 className="text-xl font-bold">
 
-            </h2>
+                    Banner Homepage
 
-            <div className="grid grid-cols-3 gap-6">
+                </h2>
 
-                {banners.map((banner) => (
+                <p className="text-sm text-slate-500 mt-1">
 
-                    <div
-                        key={banner.id}
-                        className="border rounded-xl overflow-hidden"
-                    >
+                    Banner yang sedang ditampilkan pada halaman utama website.
 
-                        <img
-                            src={`http://localhost:8000/storage/${banner.image}`}
-                            className="w-full h-52 object-cover"
-                        />
+                </p>
 
-                        <div className="p-4">
+            </div>
 
-                            <h3 className="font-semibold">
+            <div className="grid md:grid-cols-2 gap-6">
 
-                                {banner.title}
+                {
 
-                            </h3>
+                    banners.map((banner) => (
 
-                            <button
-                                onClick={() =>
-                                    handleDelete(banner.id)
-                                }
-                                className="mt-4 w-full bg-red-600 text-white py-2 rounded-lg"
-                            >
+                        <div
+                            key={banner.id}
+                            className="
+                                bg-white
+                                rounded-2xl
+                                border
+                                shadow-sm
+                                overflow-hidden
+                                hover:shadow-md
+                                transition
+                            "
+                        >
 
-                                Delete
+                            <img
+                                src={`http://localhost:8000/storage/${banner.image}`}
+                                className="
+                                    w-full
+                                    h-56
+                                    object-cover
+                                "
+                            />
 
-                            </button>
+                            <div className="p-5">
+
+                                <h3 className="font-semibold text-lg">
+
+                                    {banner.title}
+
+                                </h3>
+
+                                <button
+                                    onClick={() =>
+                                        handleDelete(banner.id)
+                                    }
+                                    className="
+                                        mt-5
+                                        w-full
+                                        bg-red-500
+                                        hover:bg-red-600
+                                        text-white
+                                        py-3
+                                        rounded-xl
+                                        transition
+                                        cursor-pointer
+                                    "
+                                >
+
+                                    Delete Banner
+
+                                </button>
+
+                            </div>
 
                         </div>
 
-                    </div>
+                    ))
 
-                ))}
+                }
 
             </div>
 

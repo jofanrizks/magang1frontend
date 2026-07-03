@@ -39,17 +39,23 @@ export default function BannerForm() {
 
     return (
 
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white rounded-2xl border shadow-sm p-6 sticky top-24">
 
-            <h2 className="text-xl font-semibold mb-5">
+            <h2 className="text-xl font-bold">
 
                 Upload Banner
 
             </h2>
 
+            <p className="text-sm text-slate-500 mt-1 mb-6">
+
+                Tambahkan banner baru untuk halaman Home.
+
+            </p>
+
             <form
                 onSubmit={handleSubmit}
-                className="space-y-4"
+                className="space-y-5"
             >
 
                 <input
@@ -57,20 +63,51 @@ export default function BannerForm() {
                     placeholder="Judul Banner"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full border p-3 rounded-lg"
+                    className="
+                        w-full
+                        rounded-xl
+                        border
+                        border-slate-300
+                        px-4
+                        py-3
+                        outline-none
+                        focus:ring-2
+                        focus:ring-blue-500
+                    "
                 />
 
                 <input
                     type="file"
                     multiple
                     onChange={(e) => setImages(Array.from(e.target.files))}
+                    className="
+                        w-full
+                        rounded-xl
+                        border
+                        border-dashed
+                        border-slate-300
+                        p-4
+                        cursor-pointer
+                    "
                 />
 
                 <button
                     type="submit"
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg"
+                    className="
+                        w-full
+                        bg-blue-600
+                        hover:bg-blue-700
+                        text-white
+                        font-medium
+                        py-3
+                        rounded-xl
+                        transition
+                        cursor-pointer
+                    "
                 >
-                    Upload
+
+                    Upload Banner
+
                 </button>
 
             </form>

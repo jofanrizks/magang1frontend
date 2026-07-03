@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Menu,
     X,
-    User
+    User,
+    Settings
 } from "lucide-react";
 import UserDrawer from "./UserDrawer";
 import {
     sendDisableOtp,
     disableAccount
 } from "../../services/userService";
+
 import { logout as logoutApi } from "../../services/authService";
 
 import Swal from "sweetalert2";
@@ -258,8 +260,33 @@ export default function Navbar() {
                 >
 
                     {user ? (
-
                         <>
+                            <button
+                                onClick={() => navigate("/setting")}
+                                className="
+                                    w-11
+                                    h-11
+                                    rounded-xl
+                                    bg-white/20
+                                    backdrop-blur
+                                    hover:bg-white/30
+                                    transition
+                                    flex
+                                    items-center
+                                    justify-center
+                                    cursor-pointer
+                                "
+                            >
+                                <Settings
+                                    size={20}
+                                    className={
+                                        scrolled
+                                            ? "text-slate-700"
+                                            : "text-white"
+                                    }
+                                />
+                            </button>
+
                             <button
                                 onClick={() => setDrawerOpen(true)}
                                 className="
@@ -276,8 +303,7 @@ export default function Navbar() {
                                     cursor-pointer
                                 "
                             >
-
-                                <User 
+                                <User
                                     size={20}
                                     className={
                                         scrolled
@@ -285,34 +311,24 @@ export default function Navbar() {
                                             : "text-white"
                                     }
                                 />
-
                             </button>
-
                         </>
-
                     ) : (
-
                         <button
-                            onClick={() =>
-                                navigate("/login")
-                            }
+                            onClick={() => navigate("/login")}
                             className="
-                                px-6
-                                py-2.5
-                                rounded-xl
                                 bg-blue-600
                                 hover:bg-blue-700
                                 text-white
+                                rounded-xl
+                                py-3
+                                px-6
                                 transition
                             "
                         >
-
                             Login
-
                         </button>
-
-                    )}
-
+                    )}  
                 </div>
 
                 {/* Mobile */}
