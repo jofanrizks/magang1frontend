@@ -196,30 +196,6 @@ export default function UserDrawer({
 
                     </button>
 
-                    <button
-                        onClick={logout}
-                        className="
-                            w-full
-                            bg-red-600
-                            hover:bg-red-700
-                            text-white
-                            rounded-xl
-                            py-3
-                            flex
-                            justify-center
-                            items-center
-                            gap-2
-                            transition
-                            cursor-pointer
-                        "
-                    >
-
-                        <LogOut size={18} />
-
-                        Logout
-
-                    </button>
-
                 </div>
 
             </aside>

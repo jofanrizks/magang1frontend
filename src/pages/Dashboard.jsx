@@ -122,7 +122,7 @@ export default function Dashboard() {
                 columns={columns}
                 data={users}
                 search
-                searchPlaceHolder="Cari User"
+                searchPlaceHolder="Cari Data"
             />
 
             <UserDetailModal

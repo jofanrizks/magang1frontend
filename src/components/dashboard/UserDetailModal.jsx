@@ -27,6 +27,7 @@ export default function UserDetailModal({
     return (
 
         <div
+            onClick={onClose}
             className="
                 fixed
                 inset-0
@@ -228,7 +229,7 @@ export default function UserDetailModal({
 
                     </div>
 
-                    <div className="border rounded-xl overflow-hidden">
+                    <div className="border border-slate-300 rounded-xl overflow-hidden">
 
                         {
 
@@ -238,7 +239,7 @@ export default function UserDetailModal({
 
                                     <div
                                         key={log.id}
-                                        className="border-b last:border-b-0 p-4"
+                                        className="border border-slate-300 p-3"
                                     >
 
                                         <div className="flex justify-between items-start">
