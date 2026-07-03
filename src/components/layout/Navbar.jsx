@@ -3,14 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import {
     Menu,
     X,
-    User,
-    LogOut
+    User
 } from "lucide-react";
 import UserDrawer from "./UserDrawer";
 import {
     sendDisableOtp,
     disableAccount
 } from "../../services/userService";
+import { logout as logoutApi } from "../../services/authService";
 
 import Swal from "sweetalert2";
 export default function Navbar() {
@@ -41,7 +41,15 @@ export default function Navbar() {
 
     }, []);
 
-    function logout() {
+
+
+    async function logout() {
+
+        try {
+
+            await logoutApi();
+
+        } catch (e) {}
 
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -49,7 +57,6 @@ export default function Navbar() {
         navigate("/login");
 
     }
-    
     async function handleDisableAccount() {
 
         const { value: password } = await Swal.fire({

@@ -241,13 +241,19 @@ export default function UserDetailModal({
                                         className="border-b last:border-b-0 p-4"
                                     >
 
-                                        <div className="flex justify-between">
+                                        <div className="flex justify-between items-start">
 
-                                            <h4 className="font-semibold">
+                                            <div>
 
-                                                {log.activity}
+                                                <h4 className="font-semibold">
+                                                    {log.activity}
+                                                </h4>
 
-                                            </h4>
+                                                <p className="text-sm text-slate-500 mt-1">
+                                                    IP Address : {log.ip_address ?? "-"}
+                                                </p>
+
+                                            </div>
 
                                             <span className="text-sm font-medium text-slate-500">
                                                 {new Date(log.created_at).toLocaleString("id-ID", {
@@ -258,12 +264,11 @@ export default function UserDetailModal({
                                                     minute: "2-digit",
                                                 })}
                                             </span>
+
                                         </div>
 
-                                        <p className="text-gray-600 mt-1">
-
+                                        <p className="text-gray-600 mt-3">
                                             {log.description}
-
                                         </p>
 
                                     </div>
