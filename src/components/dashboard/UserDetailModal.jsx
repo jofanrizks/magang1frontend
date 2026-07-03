@@ -18,7 +18,8 @@ export default function UserDetailModal({
 
     user,
     onClose,
-    onDisable
+    onDisable,
+    onEnable
 
 }) {
 
