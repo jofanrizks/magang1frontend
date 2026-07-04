@@ -18,7 +18,11 @@ export default function BannerList() {
 
         const res = await getBanners();
 
-        setBanners(res.data.data);
+        const sorted = res.data.data.sort((a, b) =>
+            a.title.localeCompare(b.title)
+        );
+
+        setBanners(sorted);
 
     }
 
@@ -34,25 +38,44 @@ export default function BannerList() {
 
     return (
 
-        <div className="space-y-5">
+        <div className="bg-white rounded-3xl border shadow-sm p-8">
 
-            <div>
+            <div className="flex justify-between items-center mb-8">
 
-                <h2 className="text-xl font-bold">
+                <div>
 
-                    Banner Homepage
+                    <h2 className="text-2xl font-bold">
 
-                </h2>
+                        Banner Homepage
 
-                <p className="text-sm text-slate-500 mt-1">
+                    </h2>
 
-                    Banner yang sedang ditampilkan pada halaman utama website.
+                    <p className="text-sm text-slate-500 mt-1">
 
-                </p>
+                        Banner yang tampil pada halaman utama website.
+
+                    </p>
+
+                </div>
+
+                <div
+                    className="
+                        bg-blue-50
+                        text-blue-700
+                        px-4
+                        py-2
+                        rounded-full
+                        font-semibold
+                    "
+                >
+
+                    {banners.length} / 5 Banner
+
+                </div>
 
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
                 {
 
@@ -61,12 +84,11 @@ export default function BannerList() {
                         <div
                             key={banner.id}
                             className="
-                                bg-white
                                 rounded-2xl
-                                border
-                                shadow-sm
                                 overflow-hidden
-                                hover:shadow-md
+                                border
+                                bg-slate-50
+                                hover:shadow-lg
                                 transition
                             "
                         >
@@ -75,14 +97,14 @@ export default function BannerList() {
                                 src={`http://localhost:8000/storage/${banner.image}`}
                                 className="
                                     w-full
-                                    h-56
+                                    h-52
                                     object-cover
                                 "
                             />
 
                             <div className="p-5">
 
-                                <h3 className="font-semibold text-lg">
+                                <h3 className="font-bold text-lg">
 
                                     {banner.title}
 
@@ -95,17 +117,18 @@ export default function BannerList() {
                                     className="
                                         mt-5
                                         w-full
+                                        py-3
+                                        rounded-xl
                                         bg-red-500
                                         hover:bg-red-600
                                         text-white
-                                        py-3
-                                        rounded-xl
+                                        font-medium
                                         transition
                                         cursor-pointer
                                     "
                                 >
 
-                                    Delete Banner
+                                    Hapus Banner
 
                                 </button>
 
