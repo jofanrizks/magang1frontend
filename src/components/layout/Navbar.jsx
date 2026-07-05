@@ -215,18 +215,25 @@ export default function Navbar() {
                 >
 
                     <div
-                        className="
+                        className={`
                             w-11
                             h-11
                             rounded-xl
-                            bg-blue-600
-                            text-white
+                            bg-white/20
+                            backdrop-blur
+                            hover:bg-white/30
+                            transition
                             flex
                             items-center
                             justify-center
                             font-bold
                             text-lg
-                        "
+                            ${
+                                scrolled
+                                    ? "text-slate-700"
+                                    : "text-white"
+                            }
+                        `}
                     >
 
                         S
@@ -408,7 +415,11 @@ export default function Navbar() {
                             className="
                                 w-full
                                 font-semibold
-                                bg-blue-600
+                                bg-gradient-to-r
+                                from-blue-600
+                                to-cyan-500
+                                hover:from-blue-700
+                                hover:to-cyan-600
                                 text-white
                                 rounded-lg
                                 p-2

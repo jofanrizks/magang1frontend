@@ -2,7 +2,8 @@ import { useState } from "react";
 import {
     ImagePlus,
     Upload,
-    X
+    X,
+    Image,
 } from "lucide-react";
 
 import { uploadBanner } from "../../services/bannerService";
@@ -10,36 +11,27 @@ import { uploadBanner } from "../../services/bannerService";
 export default function BannerForm() {
 
     const [title, setTitle] = useState("");
-
-    const [images, setImages] = useState([]);
+    const [image, setImage] = useState(null);
 
     async function handleSubmit(e) {
 
         e.preventDefault();
 
-        if (images.length === 0) {
-
-            alert("Silakan pilih gambar.");
-
+        if (!title || !image) {
+            alert("Lengkapi data terlebih dahulu.");
             return;
-
         }
 
         const formData = new FormData();
 
         formData.append("title", title);
-
-        images.forEach((file) => {
-
-            formData.append("images[]", file);
-
-        });
+        formData.append("images[]", image);
 
         try {
 
             await uploadBanner(formData);
 
-            alert("Banner berhasil ditambahkan.");
+            alert("Banner berhasil diperbarui.");
 
             window.location.reload();
 
@@ -51,62 +43,60 @@ export default function BannerForm() {
 
     }
 
-    function removeImage(index) {
-
-        setImages(images.filter((_, i) => i !== index));
-
-    }
-
     return (
 
         <div
             className="
                 bg-white
                 rounded-3xl
-                shadow-xl
                 border
                 border-slate-200
+                shadow-sm
                 p-8
                 sticky
-                top-28
+                top-24
             "
         >
 
             {/* Header */}
 
-            <div className="mb-8">
+            <div className="flex items-center gap-4 mb-8">
 
                 <div
                     className="
                         w-14
                         h-14
                         rounded-2xl
-                        bg-blue-100
+                        bg-gradient-to-r
+                        from-blue-600
+                        to-cyan-500
+                        text-white
                         flex
                         items-center
                         justify-center
-                        mb-4
+                        shadow-lg
                     "
                 >
 
-                    <ImagePlus
-                        className="text-blue-600"
-                        size={28}
-                    />
+                    <ImagePlus size={28} />
 
                 </div>
 
-                <h2 className="text-2xl font-bold">
+                <div>
 
-                    Upload Banner
+                    <h2 className="text-2xl font-bold text-slate-800">
 
-                </h2>
+                        Upload Banner
 
-                <p className="text-slate-500 mt-2">
+                    </h2>
 
-                    Upload maksimal 5 banner untuk homepage.
+                    <p className="text-sm text-slate-500 mt-1">
 
-                </p>
+                        Upload atau ganti banner homepage.
+
+                    </p>
+
+                </div>
 
             </div>
 
@@ -115,211 +105,217 @@ export default function BannerForm() {
                 className="space-y-6"
             >
 
-                {/* Title */}
+                {/* Slot */}
 
                 <div>
 
-                    <label className="font-medium">
+                    <label className="block text-sm font-semibold mb-2 text-slate-700">
 
-                        Judul Banner
+                        Slot Banner
 
                     </label>
 
-                    <input
-                        type="text"
-                        placeholder="Contoh : Banner Promo"
+                    <select
                         value={title}
-                        onChange={(e) =>
-                            setTitle(e.target.value)
-                        }
+                        onChange={(e) => setTitle(e.target.value)}
                         className="
-                            mt-2
                             w-full
-                            rounded-xl
+                            rounded-2xl
                             border
                             border-slate-200
                             px-4
                             py-3
                             outline-none
+                            transition
                             focus:ring-2
                             focus:ring-blue-500
+                            focus:border-blue-500
                         "
-                    />
+                    >
+
+                        <option value="">
+
+                            Pilih Slot Banner
+
+                        </option>
+
+                        <option value="Banner 1">
+
+                            Banner 1
+
+                        </option>
+
+                        <option value="Banner 2">
+
+                            Banner 2
+
+                        </option>
+
+                        <option value="Banner 3">
+
+                            Banner 3
+
+                        </option>
+
+                        <option value="Banner 4">
+
+                            Banner 4
+
+                        </option>
+
+                        <option value="Banner 5">
+
+                            Banner 5
+
+                        </option>
+
+                    </select>
 
                 </div>
 
                 {/* Upload */}
 
-                <label
-                    className="
-                        block
-                        border-2
-                        border-dashed
-                        border-slate-300
-                        rounded-2xl
-                        p-8
-                        text-center
-                        hover:border-blue-500
-                        hover:bg-blue-50
-                        transition
-                        cursor-pointer
-                    "
-                >
+                <div>
 
-                    <Upload
-                        className="mx-auto text-blue-600"
-                        size={42}
-                    />
+                    <label className="block text-sm font-semibold mb-3 text-slate-700">
 
-                    <h3 className="font-semibold mt-4">
+                        Gambar Banner
 
-                        Klik untuk memilih gambar
+                    </label>
 
-                    </h3>
+                    <label
+                        className="
+                            flex
+                            flex-col
+                            items-center
+                            justify-center
+                            gap-3
+                            border-2
+                            border-dashed
+                            border-slate-300
+                            hover:border-blue-500
+                            bg-slate-50
+                            rounded-2xl
+                            p-8
+                            transition
+                            cursor-pointer
+                        "
+                    >
 
-                    <p className="text-sm text-slate-500 mt-2">
+                        <Upload
+                            size={34}
+                            className="text-blue-600"
+                        />
 
-                        JPG, PNG atau WEBP
+                        <span className="font-medium text-slate-700">
 
-                    </p>
+                            Klik untuk memilih gambar
 
-                    <input
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={(e) =>
-                            setImages(
-                                Array.from(e.target.files)
-                            )
-                        }
-                    />
+                        </span>
 
-                </label>
+                        <span className="text-sm text-slate-500">
+
+                            JPG, PNG maksimal 2 MB
+
+                        </span>
+
+                        <input
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            onChange={(e) =>
+                                setImage(e.target.files[0])
+                            }
+                        />
+
+                    </label>
+
+                </div>
 
                 {/* Preview */}
 
-                {
+                {image && (
 
-                    images.length > 0 && (
+                    <div>
 
-                        <div>
+                        <label className="block text-sm font-semibold mb-3">
 
-                            <div
+                            Preview
+
+                        </label>
+
+                        <div
+                            className="
+                                relative
+                                rounded-2xl
+                                overflow-hidden
+                                border
+                                border-slate-200
+                            "
+                        >
+
+                            <img
+                                src={URL.createObjectURL(image)}
+                                alt="Preview"
                                 className="
+                                    w-full
+                                    h-56
+                                    object-cover
+                                "
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setImage(null)}
+                                className="
+                                    absolute
+                                    top-3
+                                    right-3
+                                    w-10
+                                    h-10
+                                    rounded-full
+                                    bg-red-500
+                                    hover:bg-red-600
+                                    text-white
                                     flex
-                                    justify-between
                                     items-center
-                                    mb-4
+                                    justify-center
+                                    transition
                                 "
                             >
 
-                                <h4 className="font-semibold">
+                                <X size={18} />
 
-                                    Preview
-
-                                </h4>
-
-                                <span
-                                    className="
-                                        text-sm
-                                        text-slate-500
-                                    "
-                                >
-
-                                    {images.length} gambar dipilih
-
-                                </span>
-
-                            </div>
-
-                            <div
-                                className="
-                                    grid
-                                    grid-cols-2
-                                    gap-3
-                                "
-                            >
-
-                                {
-
-                                    images.map((image, index) => (
-
-                                        <div
-                                            key={index}
-                                            className="
-                                                relative
-                                                rounded-xl
-                                                overflow-hidden
-                                                border
-                                            "
-                                        >
-
-                                            <img
-                                                src={URL.createObjectURL(image)}
-                                                alt=""
-                                                className="
-                                                    h-32
-                                                    w-full
-                                                    object-cover
-                                                "
-                                            />
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeImage(index)
-                                                }
-                                                className="
-                                                    absolute
-                                                    top-2
-                                                    right-2
-                                                    w-8
-                                                    h-8
-                                                    rounded-full
-                                                    bg-red-500
-                                                    text-white
-                                                    flex
-                                                    items-center
-                                                    justify-center
-                                                    hover:bg-red-600
-                                                    cursor-pointer
-                                                "
-                                            >
-
-                                                <X size={16} />
-
-                                            </button>
-
-                                        </div>
-
-                                    ))
-
-                                }
-
-                            </div>
+                            </button>
 
                         </div>
 
-                    )
+                    </div>
 
-                }
+                )}
+
+                {/* Submit */}
 
                 <button
                     type="submit"
                     className="
                         w-full
-                        bg-blue-600
-                        hover:bg-blue-700
+                        bg-gradient-to-r
+                        from-blue-600
+                        to-cyan-500
+                        hover:from-blue-700
+                        hover:to-cyan-600
                         text-white
+                        py-4
+                        rounded-2xl
                         font-semibold
-                        py-3
-                        rounded-xl
+                        shadow-lg
                         transition
                         cursor-pointer
                     "
                 >
 
-                    Upload Banner
+                    Simpan Banner
 
                 </button>
 

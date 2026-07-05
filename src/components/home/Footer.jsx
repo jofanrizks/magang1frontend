@@ -49,7 +49,9 @@ export default function Footer() {
                                 w-12
                                 h-12
                                 rounded-xl
-                                bg-blue-600
+                                bg-gradient-to-r
+                                from-blue-600
+                                to-cyan-500
                                 flex
                                 items-center
                                 justify-center
