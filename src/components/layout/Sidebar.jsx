@@ -36,11 +36,7 @@ export default function Sidebar() {
             path: "/approved-users",
             icon: CheckCircle2
         },
-        {
-            name: "Content",
-            path: "/content",
-            icon: User
-        }
+    
     ];
 
     function logout() {
@@ -264,7 +260,6 @@ export default function Sidebar() {
 
             </div>
 
-            {/* ================= MENU ================= */}
 
             <div className="flex-1 px-3 py-4 space-y-1">
 
@@ -361,7 +356,6 @@ export default function Sidebar() {
 
             </div>
 
-            {/* ================= LOGOUT ================= */}
 
             <div className="border-t border-slate-800 p-3">
 

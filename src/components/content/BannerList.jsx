@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import {
+    Image,
+    Trash2
+} from "lucide-react";
+
+import {
     getBanners,
-    deleteBanner,
+    deleteBanner
 } from "../../services/bannerService";
+
+import Swal from "sweetalert2";
 
 export default function BannerList() {
 
@@ -24,68 +31,244 @@ export default function BannerList() {
 
     async function handleDelete(id) {
 
-        if (!window.confirm("Hapus banner?")) {
+        const result = await Swal.fire({
 
-            return;
+            title: "Hapus Banner?",
 
-        }
+            text: "Banner yang dihapus tidak dapat dikembalikan.",
+
+            icon: "warning",
+
+            showCancelButton: true,
+
+            confirmButtonColor: "#ef4444",
+
+            cancelButtonText: "Batal",
+
+            confirmButtonText: "Hapus"
+
+        });
+
+        if (!result.isConfirmed) return;
 
         await deleteBanner(id);
 
         loadBanner();
 
+        Swal.fire({
+
+            icon: "success",
+
+            title: "Berhasil",
+
+            text: "Banner berhasil dihapus."
+
+        });
+
     }
 
     return (
 
-        <div className="bg-white rounded-xl shadow p-6">
+        <div
+            className="
+                bg-white
+                rounded-3xl
+                shadow-xl
+                border
+                border-slate-200
+                p-8
+            "
+        >
 
-            <h2 className="text-xl font-semibold mb-6">
+            {/* Header */}
 
-                Banner
+            <div className="flex justify-between items-center mb-8">
 
-            </h2>
+                <div>
 
-            <div className="grid grid-cols-3 gap-6">
+                    <h2 className="text-2xl font-bold">
 
-                {banners.map((banner) => (
+                        Banner Homepage
+
+                    </h2>
+
+                    <p className="text-slate-500 mt-2">
+
+                        Banner yang sedang digunakan pada halaman Home.
+
+                    </p>
+
+                </div>
+
+                <div
+                    className="
+                        px-4
+                        py-2
+                        rounded-xl
+                        bg-blue-100
+                        text-blue-700
+                        font-semibold
+                    "
+                >
+
+                    {banners.length} / 5 Banner
+
+                </div>
+
+            </div>
+
+            {
+
+                banners.length === 0 ? (
 
                     <div
-                        key={banner.id}
-                        className="border rounded-xl overflow-hidden"
+                        className="
+                            flex
+                            flex-col
+                            items-center
+                            justify-center
+                            py-24
+                            text-slate-400
+                        "
                     >
 
-                        <img
-                            src={`http://localhost:8000/storage/${banner.image}`}
-                            className="w-full h-52 object-cover"
+                        <Image
+                            size={70}
+                            strokeWidth={1.5}
                         />
 
-                        <div className="p-4">
+                        <h3 className="mt-5 text-xl font-semibold">
 
-                            <h3 className="font-semibold">
+                            Belum Ada Banner
 
-                                {banner.title}
+                        </h3>
 
-                            </h3>
+                        <p className="mt-2">
 
-                            <button
-                                onClick={() =>
-                                    handleDelete(banner.id)
-                                }
-                                className="mt-4 w-full bg-red-600 text-white py-2 rounded-lg"
-                            >
+                            Upload banner pertama Anda.
 
-                                Delete
-
-                            </button>
-
-                        </div>
+                        </p>
 
                     </div>
 
-                ))}
+                ) : (
 
-            </div>
+                    <div
+                        className="
+                            grid
+                            md:grid-cols-2
+                            xl:grid-cols-3
+                            gap-6
+                        "
+                    >
+
+                        {
+
+                            banners.map((banner) => (
+
+                                <div
+                                    key={banner.id}
+                                    className="
+                                        group
+                                        rounded-2xl
+                                        overflow-hidden
+                                        border
+                                        border-slate-200
+                                        shadow-md
+                                        hover:shadow-xl
+                                        transition
+                                        bg-white
+                                    "
+                                >
+
+                                    <div className="relative">
+
+                                        <img
+                                            src={`http://localhost:8000/storage/${banner.image}`}
+                                            alt={banner.title}
+                                            className="
+                                                h-56
+                                                w-full
+                                                object-cover
+                                                group-hover:scale-105
+                                                transition
+                                                duration-300
+                                            "
+                                        />
+
+                                        <div
+                                            className="
+                                                absolute
+                                                inset-0
+                                                bg-black/0
+                                                group-hover:bg-black/10
+                                                transition
+                                            "
+                                        />
+
+                                    </div>
+
+                                    <div className="p-5">
+
+                                        <h3
+                                            className="
+                                                font-bold
+                                                text-lg
+                                                text-slate-800
+                                                line-clamp-1
+                                            "
+                                        >
+
+                                            {banner.title}
+
+                                        </h3>
+
+                                        <p className="text-slate-500 text-sm mt-2">
+
+                                            Banner Homepage
+
+                                        </p>
+
+                                        <button
+                                            onClick={() =>
+                                                handleDelete(banner.id)
+                                            }
+                                            className="
+                                                mt-5
+                                                w-full
+                                                flex
+                                                items-center
+                                                justify-center
+                                                gap-2
+                                                py-3
+                                                rounded-xl
+                                                bg-red-500
+                                                hover:bg-red-600
+                                                text-white
+                                                transition
+                                                cursor-pointer
+                                            "
+                                        >
+
+                                            <Trash2 size={18} />
+
+                                            Hapus Banner
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            ))
+
+                        }
+
+                    </div>
+
+                )
+
+            }
 
         </div>
 

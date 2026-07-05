@@ -16,7 +16,6 @@ import {
 
 import { logout as logoutApi } from "../../services/authService";
 
-
 import Swal from "sweetalert2";
 export default function Navbar() {
 
@@ -282,61 +281,29 @@ export default function Navbar() {
                 {/* Right */}
 
                 <div
-                    className="
-                        hidden
-                        lg:flex
-                        items-center
-                        gap-3
-                    "
+                    ref={menuRef}
+                    className="relative"
                 >
 
-                    {!user ? (
-
+                    {user ? (
                         <>
+
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={() => setProfileMenu(!profileMenu)}
                                 className="
-                                    px-4
-                                    py-2
-                                    rounded-xl
-                                    bg-blue-600
-                                    backdrop-blur
-                                    hover:bg-blue-700
-                                    text-white
-                                    transition
-                                    cursor-pointer
-                                "
-                            >
-                                Login
-                            </button>
-
-                        </>
-
-                    ) : (
-
-                        <div
-                            ref={menuRef} 
-                            className="relative"
-                        >
-                            <button
-                                onClick={() => setProfileMenu(!profileMenu)}                                
-                                className={`
                                     w-11
                                     h-11
                                     rounded-xl
+                                    bg-white/20
+                                    backdrop-blur
+                                    hover:bg-white/30
+                                    transition
                                     flex
                                     items-center
                                     justify-center
-                                    transition
                                     cursor-pointer
-                                    ${
-                                        scrolled
-                                            ? "bg-slate-100 hover:bg-slate-200"
-                                            : "bg-white/20 hover:bg-white/30 backdrop-blur"
-                                    }
-                                `}
+                                "
                             >
-
                                 <User
                                     size={20}
                                     className={
@@ -354,14 +321,17 @@ export default function Navbar() {
                                         right-0
                                         mt-3
                                         w-56
-                                        bg-white
-                                        rounded-xl
+                                        rounded-2xl
+                                        bg-white/80
+                                        backdrop-blur-xl
+                                        border
+                                        border-slate-200
                                         shadow-xl
-                                        border-slate
                                         overflow-hidden
                                         z-50
                                     "
                                 >
+                                
                                     <button
                                         onClick={() => {
                                             setDrawerOpen(true);
@@ -379,15 +349,13 @@ export default function Navbar() {
                                             cursor-pointer
                                         "
                                     >
-                                        <User size={18} />
-                                        
-                                        Profil 
-
+                                        <User size={18}/>
+                                        Profil
                                     </button>
-
+                                    
                                     <button
                                         onClick={() => {
-                                            navigate("/content");
+                                            navigate("/setting");
                                             setProfileMenu(false);
                                         }}
                                         className="
@@ -402,13 +370,12 @@ export default function Navbar() {
                                             cursor-pointer
                                         "
                                     >
-                                        <Settings size={18} />
+                                        <Settings size={18}/>
                                         Ganti Banner
-
                                     </button>
-
+                                    
                                     <hr />
-
+                                    
                                     <button
                                         onClick={() => {
                                             logout();
@@ -421,24 +388,36 @@ export default function Navbar() {
                                             gap-3
                                             px-4
                                             py-3
-                                            text-red-500
-                                            hover:bg-red-300
+                                            hover:bg-slate-100
                                             transition
                                             cursor-pointer
                                         "
                                     >
-                                        <LogOut size={18} />
+                                        <LogOut size={18}/>
                                         Logout
-
                                     </button>
-
+                                    
                                 </div>
                             )}
+                        </>
 
-                        </div>
-                        
-                    )}
+                    ) : (
 
+                        <button
+                            onClick={() => navigate("/login")}
+                            className="
+                                w-full
+                                font-semibold
+                                bg-blue-600
+                                text-white
+                                rounded-lg
+                                p-2
+                                cursor-pointer
+                            "
+                        >
+                            Login
+                        </button>
+                    )}  
                 </div>
 
                 {/* Mobile */}

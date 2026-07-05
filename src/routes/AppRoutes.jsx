@@ -16,8 +16,7 @@ import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
 import MenuPage from "../pages/MenuPage";
-import Content from "../pages/Content";
-
+import Setting from "../pages/Setting";
 export default function AppRoutes() {
 
     return (
@@ -71,7 +70,12 @@ export default function AppRoutes() {
                     path="/menu/:id"
                     element={<MenuPage />}
                 />
-
+                <Route
+                        path="/setting"
+                        element={
+                            <Setting />
+                        }
+                    />
                 {/* Admin */}
 
                 <Route
@@ -101,12 +105,7 @@ export default function AppRoutes() {
                             <ApprovedUser />
                         }
                     />
-                    <Route
-                        path="/content"
-                        element={
-                            <Content />
-                        }
-                    />
+                    
                 
                 </Route>
 
