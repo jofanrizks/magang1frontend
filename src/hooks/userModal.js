@@ -20,7 +20,8 @@ export default function useUserModal() {
 
         selectedUser,
         openUser,
-        closeUser
+        closeUser,
+        setSelectedUser
 
     };
 

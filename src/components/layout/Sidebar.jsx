@@ -94,9 +94,9 @@ export default function Sidebar() {
                                 items-center
                                 justify-center
                                 rounded-xl
-                                bg-blue-600
                                 font-bold
                                 transition-all
+                                hover:bg-slate-800
                             "
                         >
 

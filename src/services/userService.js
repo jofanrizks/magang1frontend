@@ -47,3 +47,7 @@ export const disableAccount = async (otp) => {
 export const getUserLog = (id) => {
     return api.get(`/users/${id}/log`);
 };
+
+export const getUserActivities = (id, page) => {
+    return api.get(`/users/${id}/activities`, { params: { page } });
+};

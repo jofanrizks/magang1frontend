@@ -34,7 +34,8 @@ export default function Dashboard() {
         try {
             await disableUser(id);
             await fetchUsers();
-            closeUser();
+            const res = await getUserLog(id);
+            setSelectedUser({...res.data.data});
         } catch (err) {
             console.log(err);
         }
@@ -43,75 +44,48 @@ export default function Dashboard() {
         try {
             await enableUser(id);
             await fetchUsers();
-            closeUser();
+            const res = await getUserLog(id);
+            setSelectedUser({...res.data.data});
         } catch (err) {
             console.log(err);
         }
     }
 
     async function fetchUsers() {
-
         try {
-
             const res = await getAllUsers();
-
             setUsers(res.data.data);
-
         } catch (err) {
-
             console.log(err);
-
         }
-
     }
 
     async function openUser(user) {
-
         try {
-
             const res = await getUserLog(user.id);
-
-            setSelectedUser(
-                res.data.data
-            );
-
+            setSelectedUser(res.data.data);
         } catch (err) {
-
             console.log(err);
-
         }
-
     }
 
     function closeUser() {
-
         setSelectedUser(null);
-
     }
-
     const stats = dashboardStats(users);
-
-    const columns =
-        userTableColumns(openUser);
+    const columns = userTableColumns(openUser);
 
     return (
-
         <div className="space-y-8">
 
             <div>
-
                 <h1 className="text-3xl font-bold">
-
                     Dashboard Admin
-
                 </h1>
 
                 <p className="text-gray-500 mt-2">
-
                     Monitoring dan pengelolaan seluruh pengguna sistem.
-
                 </p>
-
             </div>
 
             <DashboardStats stats={stats} />

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import useDebouncedValue from "../../hooks/useDebouncedValue";
 
 export default function Table({
     title,
@@ -6,14 +7,16 @@ export default function Table({
     columns,
     data,
     search = false,
-    searchPlaceHolder = "Cari data..."
+    searchPlaceHolder = "Cari data...",
+    searchDelay = 300
 }) {
 
     const [keyword, setKeyword] = useState("");
+    const debouncedKeyword = useDebouncedValue(keyword, searchDelay);
 
     const filteredData = useMemo(() => {
 
-        if (!keyword) return data;
+        if (!debouncedKeyword) return data;
 
         return data.filter((item) =>
 
@@ -25,13 +28,13 @@ export default function Table({
 
                 return String(value ?? "")
                     .toLowerCase()
-                    .includes(keyword.toLowerCase());
+                    .includes(debouncedKeyword.toLowerCase());
 
             })
 
         );
 
-    }, [keyword, data, columns]);
+    }, [debouncedKeyword, data, columns]);
 
     return (
 

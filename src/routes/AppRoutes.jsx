@@ -17,6 +17,8 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import MenuPage from "../pages/MenuPage";
 import Setting from "../pages/Setting";
+
+import Profile from "../pages/Profile";
 export default function AppRoutes() {
 
     return (
@@ -76,6 +78,11 @@ export default function AppRoutes() {
                             <Setting />
                         }
                     />
+                <Route 
+                    path="/profile"
+                    element={<Profile />}
+                />
+                
                 {/* Admin */}
 
                 <Route

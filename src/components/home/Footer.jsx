@@ -11,7 +11,8 @@ export default function Footer() {
 
     return (
 
-        <footer
+        <section
+            id="kontak"
             className="
                 mt-24
                 bg-slate-900
@@ -308,7 +309,7 @@ export default function Footer() {
 
             </div>
 
-        </footer>
+        </section>
 
     );
 

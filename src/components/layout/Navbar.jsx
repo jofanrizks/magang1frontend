@@ -7,75 +7,46 @@ import {
     LogOut,
     Settings
 } from "lucide-react";
-import UserDrawer from "./UserDrawer";
 
-import {
-    sendDisableOtp,
-    disableAccount
-} from "../../services/userService";
+const navMenus = [
+    { label: "Home",    id: "home" },
+    { label: "Layanan", id: "layanan" },
+    { label: "Tentang", id: "tentang" },
+    { label: "Kontak",  id: "kontak" },
+];
 
-import { logout as logoutApi } from "../../services/authService";
-
-import Swal from "sweetalert2";
 export default function Navbar() {
 
     const navigate = useNavigate();
 
-    const [scrolled, setScrolled] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
-
-    const [drawerOpen, setDrawerOpen] = useState(false);    
+    const [scrolled, setScrolled]       = useState(false);
+    const [mobileOpen, setMobileOpen]   = useState(false);
     const [profileMenu, setProfileMenu] = useState(false);
 
     const menuRef = useRef(null);
     const user = JSON.parse(localStorage.getItem("user"));
     
-
     useEffect(() => {
-
         function handleScroll() {
-
             setScrolled(window.scrollY > 40);
-
         }
-
         window.addEventListener("scroll", handleScroll);
-
         return () =>
             window.removeEventListener(
                 "scroll",
                 handleScroll
             );
-
     }, []);
 
 
     useEffect(() => {
-
         function handleClickOutside(event) {
-
-            if (
-                menuRef.current &&
-                !menuRef.current.contains(event.target)
-            ) {
-
+            if ( menuRef.current && !menuRef.current.contains(event.target)) {
                 setProfileMenu(false);
-
             }
-
         }
-
-        document.addEventListener(
-            "click",
-            handleClickOutside
-        );
-
-        return () => {
-            document.removeEventListener(
-                "click",
-                handleClickOutside
-            );
-        };
+        document.addEventListener("click", handleClickOutside);
+        return () => { document.removeEventListener("click", handleClickOutside);};
     }, []);
 
     function logout() {
@@ -83,87 +54,20 @@ export default function Navbar() {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
 
-        setDrawerOpen(false);
-        setProfileMenu(false);
-
-        navigate("/");
-
     }
-    
-    async function handleDisableAccount() {
 
-        const { value: password } = await Swal.fire({
-            title: "Disable Account",
-            text: "Masukkan password untuk melanjutkan",
-            input: "password",
-            inputPlaceholder: "Password",
-            showCancelButton: true,
-            confirmButtonText: "Kirim OTP",
-            cancelButtonText: "Batal"
-        });
+    function handleNavClick(e, id) {
+        e.preventDefault();
+        setMobileOpen(false);
 
-        if (!password) return;
-
-        try {
-
-            await sendDisableOtp(password);
-
-            while (true) {
-
-                const { value: otp, isDismissed } = await Swal.fire({
-                    title: "Verifikasi OTP",
-                    text: "Masukkan kode OTP yang dikirim ke WhatsApp",
-                    input: "text",
-                    inputPlaceholder: "4 Digit OTP",
-                    showCancelButton: true,
-                    confirmButtonText: "Disable Account",
-                    cancelButtonText: "Batal",
-                    allowOutsideClick: false
-                });
-
-                if (isDismissed) return;
-
-                if (!otp) continue;
-
-                try {
-
-                    await disableAccount(otp);
-
-                    await Swal.fire({
-                        icon: "success",
-                        title: "Berhasil",
-                        text: "Akun berhasil dinonaktifkan."
-                    });
-
-                    logout();
-                    return;
-
-                } catch (err) {
-
-                    await Swal.fire({
-                        icon: "error",
-                        title: "OTP Salah",
-                        text:
-                            err.response?.data?.message ??
-                            "OTP tidak valid atau sudah expired."
-                    });
-
-                }
-
-            }
-
-        } catch (err) {
-
-            Swal.fire({
-                icon: "error",
-                title: "Gagal",
-                text:
-                    err.response?.data?.message ??
-                    "Terjadi kesalahan."
-            });
-
+        if (id === "home") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
         }
-
+        const el = document.getElementById(id);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+        }
     }
 
     return (
@@ -253,36 +157,21 @@ export default function Navbar() {
                     "
                 >
 
-                    {
-                        [
-                            "Home",
-                            "Layanan",
-                            "Tentang",
-                            "Kontak"
-                        ].map((menu) => (
-
-                            <a
-                                key={menu}
-                                href="#"
-                                className={`
-                                    font-medium
-                                    transition
-                                    hover:text-red-500
-                                    ${
-                                        scrolled
-                                            ? "text-slate-700"
-                                            : "text-white"
-                                    }
-                                `}
-                            >
-
-                                {menu}
-
-                            </a>
-
-                        ))
-                    }
-
+                    {navMenus.map((menu) => (
+                        <a
+                            key={menu.id}
+                            href={`#${menu.id}`}
+                            onClick={(e) => handleNavClick(e, menu.id)}
+                            className={`
+                                font-medium 
+                                transition 
+                                hover:text-red-500                                
+                                ${scrolled ? "text-slate-700" : "text-white"}
+                            `}
+                        >
+                            {menu.label}
+                        </a>
+                    ))}
                 </nav>
 
                 {/* Right */}
@@ -331,8 +220,6 @@ export default function Navbar() {
                                         rounded-2xl
                                         bg-white/80
                                         backdrop-blur-xl
-                                        border
-                                        border-slate-200
                                         shadow-xl
                                         overflow-hidden
                                         z-50
@@ -340,10 +227,7 @@ export default function Navbar() {
                                 >
                                 
                                     <button
-                                        onClick={() => {
-                                            setDrawerOpen(true);
-                                            setProfileMenu(false);
-                                        }}
+                                        onClick={() => navigate("/profile")}
                                         className="
                                             w-full
                                             flex
@@ -395,9 +279,10 @@ export default function Navbar() {
                                             gap-3
                                             px-4
                                             py-3
-                                            hover:bg-slate-100
+                                            hover:bg-red-400 
                                             transition
                                             cursor-pointer
+                                            outline-red
                                         "
                                     >
                                         <LogOut size={18}/>
@@ -474,14 +359,21 @@ export default function Navbar() {
                             gap-4
                         "
                     >
-
-                        <a href="#">Home</a>
-
-                        <a href="#">Layanan</a>
-
-                        <a href="#">Tentang</a>
-
-                        <a href="#">Kontak</a>
+                        {navMenus.map((menu) => (
+                            <a
+                                key={menu.id}
+                                href={`#${menu.id}`}
+                                onClick={(e) => handleNavClick(e, menu.id)}
+                                className="
+                                    font-medium
+                                    text-slate-700
+                                    hover:text-red-500
+                                    transition
+                                    cursor-pointer"
+                            >
+                                {menu.label}
+                            </a>
+                        ))}
 
                         {!user ? (
 
@@ -553,7 +445,7 @@ export default function Navbar() {
                                 >
                                     <button
                                         onClick={() => {
-                                            setDrawerOpen(true);
+                                            navigate("/profile");
                                             setProfileMenu(false);
                                         }}
                                         className="
@@ -634,14 +526,6 @@ export default function Navbar() {
                 </div>
 
             )}
-            
-            <UserDrawer
-                open={drawerOpen}
-                onClose={() => setDrawerOpen(false)}
-                user={user}
-                logout={logout}
-                disable={handleDisableAccount}
-            />
 
         </header>
 

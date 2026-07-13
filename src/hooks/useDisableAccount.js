@@ -12,26 +12,17 @@ export default function useDisableAccount(logout) {
 
             // 1. Input password
             const { value: password } = await Swal.fire({
-
                 title: "Konfirmasi Password",
-
                 text: "Masukkan password Anda",
-
                 input: "password",
-
                 inputPlaceholder: "Password",
-
                 inputAttributes: {
                     autocapitalize: "off",
                     autocorrect: "off"
                 },
-
                 showCancelButton: true,
-
                 confirmButtonText: "Lanjut",
-
                 cancelButtonText: "Batal"
-
             });
 
             if (!password) return;
@@ -39,64 +30,66 @@ export default function useDisableAccount(logout) {
             // 2. Kirim OTP
             await sendDisableOtp(password);
 
-            // 3. Input OTP
-            const { value: otp } = await Swal.fire({
+            // 3. Input OTP — pakai loop supaya bisa retry kalau salah
+            while (true) {
 
-                title: "Masukkan OTP",
+                const { value: otp, isDismissed } = await Swal.fire({
+                    title: "Masukkan OTP",
+                    text: "Kode OTP telah dikirim ke WhatsApp Anda.",
+                    input: "text",
+                    inputPlaceholder: "Masukkan OTP",
+                    showCancelButton: true,
+                    confirmButtonText: "Disable",
+                    cancelButtonText: "Batal",
+                    allowOutsideClick: false
+                });
 
-                text: "Kode OTP telah dikirim ke WhatsApp Anda.",
+                // user klik Batal
+                if (isDismissed) return;
+                if (!otp) continue;
 
-                input: "text",
+                try {
 
-                inputPlaceholder: "Masukkan OTP",
+                    // 4. Disable akun
+                    const res = await disableAccount(otp);
 
-                showCancelButton: true,
+                    // FIX 1: res sudah res.data dari userService, jadi langsung res.message
+                    await Swal.fire({
+                        icon: "success",
+                        title: "Berhasil",
+                        text: res.message ?? "Akun berhasil dinonaktifkan."
+                    });
 
-                confirmButtonText: "Disable",
+                    // FIX 2 & 3: logout dipanggil setelah Swal, bukan onSuccess
+                    logout();
+                    return
 
-                cancelButtonText: "Batal"
+                } catch (err) {
 
-            });
+                    // OTP salah → backend return 400, tampilkan warning dan loop lagi
+                    await Swal.fire({
+                        icon: "warning",
+                        title: "OTP Salah",
+                        text: err?.response?.data?.message ?? "OTP tidak valid atau sudah expired.",
+                        confirmButtonText: "Coba Lagi"
+                    });
 
-            if (!otp) return;
-
-            // 4. Disable akun
-            const res = await disableAccount(otp);
-
-            await Swal.fire({
-
-                icon: "success",
-
-                title: "Berhasil",
-
-                text: res.data.message
-
-            });
-
-            logout();
+                    // loop while(true) akan ulang dari input OTP lagi
+                }
+            }
 
         } catch (err) {
 
-            console.error(err);
-
+            // Error di luar OTP — misal password salah atau send OTP gagal
             Swal.fire({
-
                 icon: "error",
-
                 title: "Gagal",
-
-                text:
-                    err.response?.data?.message ||
-                    "Terjadi kesalahan"
-
+                text: err?.response?.data?.message ?? "Terjadi kesalahan."
             });
 
         }
 
     }
 
-    return {
-        handleDisable
-    };
-
+    return { handleDisable };
 }

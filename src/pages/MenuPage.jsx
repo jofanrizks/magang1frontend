@@ -14,7 +14,18 @@ export default function MenuPage() {
 
                 {/* Header */}
 
-                <div className="flex items-center gap-4 mb-8">
+                <div className="
+                        sticky
+                        top-0
+                        flex
+                        z-10
+                        items-center
+                        gap-4
+                        mb-2
+                        py-5
+                        backdrop-blur-xs
+                    "
+                >
 
                     <button
                         onClick={() => navigate("/")}

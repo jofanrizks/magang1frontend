@@ -17,20 +17,20 @@ export default function Setting() {
 
             <div className="max-w-7xl mx-auto px-8 py-10">
 
-                {/* Header */}
-
-                <div
-                    className="
-                        bg-white
-                        rounded-3xl
-                        border
-                        border-slate-200
-                        shadow-sm
-                        p-8
-                        mb-8
-                    "
-                >
-
+            {/* Header */}
+            <div
+                className="
+                    sticky
+                    top-0
+                    flex
+                    z-10
+                    items-center
+                    gap-4
+                    mb-2
+                    py-5
+                    backdrop-blur-xs
+                "
+            >
                     <div className="flex items-center justify-between">
 
                         <div className="flex items-center gap-5">
@@ -76,29 +76,10 @@ export default function Setting() {
 
                         </div>
 
-                        <div
-                            className="
-                                flex
-                                items-center
-                                gap-3
-                                bg-blue-50
-                                text-blue-700
-                                px-5
-                                py-3
-                                rounded-2xl
-                                font-semibold
-                            "
-                        >
-
-                            <Images size={20} />
-
-                            Homepage Banner
-
-                        </div>
-
                     </div>
 
                 </div>
+
 
                 {/* Main Content */}
 

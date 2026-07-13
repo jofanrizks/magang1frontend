@@ -12,6 +12,13 @@ export default function HeroSlider({
         try {
             const res = await getBanners();
 
+            const sorted = res.data.data.sort((a, b) => {
+                const numA = parseInt(a.title.replace("Banner ", ""));
+                const numB = parseInt(b.title.replace("Banner ", ""));
+
+                return numA - numB;
+            });
+
             setBanners(
                 res.data.data.map((banner) => ({
                     image: `http://127.0.0.1:8000/storage/${banner.image}`,
