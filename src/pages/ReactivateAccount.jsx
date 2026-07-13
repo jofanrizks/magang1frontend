@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 import Input from "../components/ui/Input";
@@ -66,6 +66,8 @@ function ActivityLog({ logs }) {
 
 export default function ReactivateAccount() {
 
+    const navigate = useNavigate();
+
     const [step, setStep] = useState(1);
     const [nik, setNik] = useState(
         localStorage.getItem("reactivate_nik") || ""
@@ -117,7 +119,6 @@ export default function ReactivateAccount() {
 
             const payload = response.data.data;
 
-            localStorage.removeItem("reactivate_nik");
             setActivityLogs(payload?.activity_logs ?? []);
 
             await Swal.fire(
@@ -136,6 +137,22 @@ export default function ReactivateAccount() {
         } finally {
             setLoading(false);
         }
+    }
+
+    function goToForgotPassword() {
+        navigate("/forgot-password", {
+            state: {
+                nik,
+                source: "reactivate-account"
+            }
+        });
+
+        localStorage.removeItem("reactivate_nik");
+    }
+
+    function goToLogin() {
+        localStorage.removeItem("reactivate_nik");
+        navigate("/login");
     }
 
     return (
@@ -234,22 +251,25 @@ export default function ReactivateAccount() {
                             <ActivityLog logs={activityLogs} />
                         </div>
 
-                        <Link
-                            to="/login"
-                            className="
-                                block
-                                w-full
-                                text-center
-                                bg-blue-600
-                                hover:bg-blue-700
-                                text-white
-                                p-3
-                                rounded-xl
-                                font-semibold
-                            "
-                        >
-                            Kembali ke Login
-                        </Link>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <Button
+                                type="button"
+                                onClick={goToForgotPassword}
+                            >
+                                Ganti Password
+                            </Button>
+
+                            <Button
+                                type="button"
+                                onClick={goToLogin}
+                                className="
+                                    bg-slate-700
+                                    hover:bg-slate-800
+                                "
+                            >
+                                Kembali ke Login
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>

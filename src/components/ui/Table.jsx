@@ -4,12 +4,17 @@ export default function Table({
     title,
     subtitle,
     columns,
-    data,
+    data = [],
     search = false,
-    searchPlaceHolder = "Cari data..."
+    searchPlaceHolder = "Cari data...",
+    sortable = true,
+    pagination = true,
+    pageSize = 10
 }) {
 
     const [keyword, setKeyword] = useState("");
+    const [sortConfig, setSortConfig] = useState(null);
+    const [page, setPage] = useState(1);
 
     const filteredData = useMemo(() => {
 
@@ -32,6 +37,69 @@ export default function Table({
         );
 
     }, [keyword, data, columns]);
+
+    const sortedData = useMemo(() => {
+        if (!sortConfig) return filteredData;
+
+        return [...filteredData].sort((a, b) => {
+            const first = a[sortConfig.key] ?? "";
+            const second = b[sortConfig.key] ?? "";
+
+            return String(first).localeCompare(
+                String(second),
+                "id-ID",
+                {
+                    numeric: true,
+                    sensitivity: "base"
+                }
+            ) * (sortConfig.direction === "asc" ? 1 : -1);
+        });
+    }, [filteredData, sortConfig]);
+
+    const totalPages =
+        pagination
+            ? Math.max(1, Math.ceil(sortedData.length / pageSize))
+            : 1;
+
+    const visibleData = useMemo(() => {
+        if (!pagination) return sortedData;
+
+        const safePage = Math.min(page, totalPages);
+        const start = (safePage - 1) * pageSize;
+
+        return sortedData.slice(start, start + pageSize);
+    }, [pagination, sortedData, page, pageSize, totalPages]);
+
+    function toggleSort(column) {
+        if (!sortable || column.render || column.sortable === false) return;
+
+        setSortConfig((previous) => {
+            if (previous?.key !== column.key) {
+                return {
+                    key: column.key,
+                    direction: "asc"
+                };
+            }
+
+            if (previous.direction === "asc") {
+                return {
+                    key: column.key,
+                    direction: "desc"
+                };
+            }
+
+            return null;
+        });
+    }
+
+    function changeKeyword(value) {
+        setKeyword(value);
+        setPage(1);
+    }
+
+    function changePage(nextPage) {
+        setPage(Math.min(Math.max(nextPage, 1), totalPages));
+    }
 
     return (
 
@@ -68,7 +136,7 @@ export default function Table({
                             placeholder={searchPlaceHolder}
                             value={keyword}
                             onChange={(e) =>
-                                setKeyword(e.target.value)
+                                changeKeyword(e.target.value)
                             }
                             className="
                                 w-full
@@ -104,6 +172,7 @@ export default function Table({
 
                                 <th
                                     key={column.key}
+                                    onClick={() => toggleSort(column)}
                                     className={`
                                         px-6
                                         py-4
@@ -119,9 +188,23 @@ export default function Table({
                                                 ? "text-right"
                                                 : "text-left"
                                         }
+                                        ${
+                                            sortable &&
+                                            !column.render &&
+                                            column.sortable !== false
+                                                ? "cursor-pointer select-none"
+                                                : ""
+                                        }
                                     `}  
                                 >
-                                    {column.title}
+                                    <span className="inline-flex items-center gap-1">
+                                        {column.title}
+                                        {sortConfig?.key === column.key && (
+                                            <span className="text-xs">
+                                                {sortConfig.direction === "asc" ? "▲" : "▼"}
+                                            </span>
+                                        )}
+                                    </span>
                                 </th>
 
                             ))}
@@ -132,9 +215,9 @@ export default function Table({
 
                     <tbody>
 
-                        {filteredData.length > 0 ? (
+                        {visibleData.length > 0 ? (
 
-                            filteredData.map((item, index) => (
+                            visibleData.map((item, index) => (
 
                                 <tr
                                     key={item.id}
@@ -203,6 +286,38 @@ export default function Table({
                 </table>
 
             </div>
+
+            {pagination && sortedData.length > 0 && (
+                <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+                    <span>
+                        Menampilkan {visibleData.length} dari {sortedData.length} data
+                    </span>
+
+                    <div className="flex items-center justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => changePage(page - 1)}
+                            disabled={page <= 1}
+                            className="rounded-lg border px-3 py-2 font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Prev
+                        </button>
+
+                        <span className="px-2">
+                            {page} / {totalPages}
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={() => changePage(page + 1)}
+                            disabled={page >= totalPages}
+                            className="rounded-lg border px-3 py-2 font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
         </div>
 

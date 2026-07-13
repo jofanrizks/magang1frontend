@@ -35,7 +35,7 @@ export default function LoginForm() {
                 )
             );
             if (
-                payload.user.role === "admin"
+                ["super_admin", "admin"].includes(payload.user.role)
             ) {
                 navigate("/dashboard");
             } else {

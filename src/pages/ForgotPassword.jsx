@@ -1,13 +1,19 @@
 import { useState } from "react";
 import api from "../api/axios";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ForgotPassword() {
 
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const [nik, setNik] = useState("");
+    const [nik, setNik] = useState(
+        location.state?.nik ||
+        localStorage.getItem("reactivate_nik") ||
+        localStorage.getItem("reset_nik") ||
+        ""
+    );
 
     async function sendOtp(e) {
 
@@ -26,6 +32,8 @@ export default function ForgotPassword() {
                 "reset_nik",
                 nik
             );
+
+            localStorage.removeItem("reactivate_nik");
 
             Swal.fire(
                 "Berhasil",

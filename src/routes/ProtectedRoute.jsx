@@ -1,36 +1,84 @@
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { me } from "../services/authService";
 
 export default function ProtectedRoute({
     children,
-    role
+    role,
+    roles
 }) {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const token =
         localStorage.getItem("token");
 
-    const user =
-        JSON.parse(
-            localStorage.getItem("user")
-        );
+    const allowedRoles =
+        roles ?? (role ? [role] : []);
 
-    if (!token) {
+    useEffect(() => {
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+
+        async function fetchUser() {
+            try {
+                const response = await me();
+                const currentUser =
+                    response.data.data ?? response.data.user;
+
+                setUser(currentUser);
+
+                if (currentUser) {
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(currentUser)
+                    );
+                }
+            } catch (err) {
+                if (err.response?.status === 401) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                }
+
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchUser();
+    }, [token]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-slate-500">
+                Memeriksa akses...
+            </div>
+        );
+    }
+
+    if (!token || !user) {
 
         return (
             <Navigate
                 to="/login"
+                replace
             />
         );
 
     }
 
     if (
-        role &&
-        user?.role !== role
+        allowedRoles.length > 0 &&
+        !allowedRoles.includes(user?.role)
     ) {
 
         return (
             <Navigate
                 to="/home"
+                replace
             />
         );
 

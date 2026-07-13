@@ -97,7 +97,7 @@ export default function AppRoutes() {
                 <Route
                     element={
                         <ProtectedRoute
-                            role="admin"
+                            roles={["super_admin", "admin"]}
                         >
                             <MainLayout />
                         </ProtectedRoute>
