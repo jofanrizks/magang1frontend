@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
 
 import Table from "../components/ui/Table";
-import Badge from "../components/ui/Badge";
+import { getApprovedUsers } from "../services/userService";
 
 export default function ApprovedUser() {
 
@@ -16,9 +15,10 @@ export default function ApprovedUser() {
 
         try {
 
-            const res = await api.get("/getApprovedUsers");
+            const res = await getApprovedUsers();
+            const payload = res.data.data;
 
-            setUsers(res.data.data);
+            setUsers(payload.data ?? payload);
 
         } catch (err) {
 

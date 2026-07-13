@@ -1,16 +1,37 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     ChevronDown,
     ChevronUp,
-    ArrowRight
+    ArrowRight,
+    Lock
 } from "lucide-react";
 
-export default function ServiceAccordion({ menus }) {
+export default function ServiceAccordion({
+    menus,
+    currentUser,
+    loadingUser = false
+}) {
 
+    const navigate = useNavigate();
     const [openMenu, setOpenMenu] = useState({});
 
     function toggleMenu(index) {
+        const serviceNumber = index + 1;
+
+        if (loadingUser) return;
+
+        if (!currentUser) {
+            navigate("/login");
+            return;
+        }
+
+        if (
+            Number(serviceNumber) !==
+            Number(currentUser.group_id)
+        ) {
+            return;
+        }
 
         setOpenMenu((prev) => ({
             ...prev,
@@ -77,23 +98,35 @@ export default function ServiceAccordion({ menus }) {
                 "
             >
 
-                {menus.map((menu, index) => (
+                {menus.map((menu, index) => {
+
+                    const serviceNumber = index + 1;
+                    const isActiveService =
+                        Number(serviceNumber) ===
+                        Number(currentUser?.group_id);
+                    const isLocked = !isActiveService;
+
+                    return (
 
                     <div
 
                         key={index}
 
-                        className="
+                        className={`
                             bg-white
                             rounded-3xl
                             border
                             border-slate-200
                             overflow-hidden
                             shadow-sm
-                            hover:shadow-xl
                             transition-all
                             duration-300
-                        "
+                            ${
+                                isLocked
+                                    ? "opacity-70"
+                                    : "hover:shadow-xl"
+                            }
+                        `}
 
                     >
 
@@ -103,7 +136,7 @@ export default function ServiceAccordion({ menus }) {
 
                             onClick={() => toggleMenu(index)}
 
-                            className="
+                            className={`
                                 w-full
                                 px-6
                                 py-5
@@ -112,10 +145,13 @@ export default function ServiceAccordion({ menus }) {
                                 justify-between
                                 font-semibold
                                 text-slate-800
-                                hover:bg-slate-50
+                                ${
+                                    isLocked
+                                        ? "cursor-pointer"
+                                        : "hover:bg-slate-50 cursor-pointer"
+                                }
                                 transition
-                                cursor-pointer
-                            "
+                            `}
 
                         >
 
@@ -125,7 +161,12 @@ export default function ServiceAccordion({ menus }) {
 
                             </span>
 
-                            {
+                            {isLocked ? (
+                                <Lock
+                                    size={18}
+                                    className="text-slate-400"
+                                />
+                            ) : (
 
                                 openMenu[index]
 
@@ -143,7 +184,7 @@ export default function ServiceAccordion({ menus }) {
                                         />
                                     )
 
-                            }
+                            )}
 
                         </button>
 
@@ -172,7 +213,7 @@ export default function ServiceAccordion({ menus }) {
 
                                             key={item.id}
 
-                                            to={item.path}
+                                            to="/group-files"
 
                                             className="
                                                 flex
@@ -222,7 +263,9 @@ export default function ServiceAccordion({ menus }) {
 
                     </div>
 
-                ))}
+                    );
+
+                })}
 
             </div>
 

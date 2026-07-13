@@ -8,6 +8,10 @@ export const getAllUsers = () => {
     return api.get("/getallusers");
 };
 
+export const getApprovedUsers = () => {
+    return api.get("/getApprovedUsers");
+};
+
 export const approveUser = (id) => {
     return api.post(`/users/${id}/send-otp`);
 };

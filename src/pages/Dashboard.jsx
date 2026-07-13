@@ -54,8 +54,9 @@ export default function Dashboard() {
         try {
 
             const res = await getAllUsers();
+            const payload = res.data.data;
 
-            setUsers(res.data.data);
+            setUsers(payload.data ?? payload);
 
         } catch (err) {
 

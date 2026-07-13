@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { login } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 
@@ -20,26 +21,44 @@ export default function LoginForm() {
     try {
 
         const res = await login(form);
+        const payload = res.data.data;
 
             localStorage.setItem(
                 "token",
-                res.data.token
+                payload.token
             );
 
             localStorage.setItem(
                 "user",
                 JSON.stringify(
-                    res.data.user
+                    payload.user
                 )
             );
             if (
-                res.data.user.role === "admin"
+                payload.user.role === "admin"
             ) {
                 navigate("/dashboard");
             } else {
                 navigate("/home");
             }
         } catch (err) {
+            if (err.response?.data?.code === "ACCOUNT_DISABLED") {
+                localStorage.setItem(
+                    "reactivate_nik",
+                    form.nik
+                );
+
+                await Swal.fire(
+                    "Akun Nonaktif",
+                    err.response?.data?.message ||
+                    "Akun Anda nonaktif. Silakan aktifkan kembali akun.",
+                    "warning"
+                );
+
+                navigate("/reactivate-account");
+                return;
+            }
+
             alert(
                 err.response?.data?.message ||
                 "Login gagal"

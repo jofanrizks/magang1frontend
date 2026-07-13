@@ -49,8 +49,9 @@ export default function OtpForm() {
             <Input
                 label="Kode OTP"
                 value={otp}
+                maxLength={6}
                 onChange={(e)=>
-                    setOtp(e.target.value)
+                    setOtp(e.target.value.replace(/\D/g, ""))
                 }
             />
 

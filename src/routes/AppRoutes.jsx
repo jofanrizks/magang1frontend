@@ -8,6 +8,8 @@ import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import GroupFiles from "../pages/GroupFiles";
+import ReactivateAccount from "../pages/ReactivateAccount";
 
 import PendingUser from "../pages/PendingUser";
 import ApprovedUser from "../pages/ApprovedUser";
@@ -52,6 +54,11 @@ export default function AppRoutes() {
                     element={<ResetPassword />}
                 />
 
+                <Route
+                    path="/reactivate-account"
+                    element={<ReactivateAccount />}
+                />
+
                 
 
                 {/* User */}
@@ -70,12 +77,21 @@ export default function AppRoutes() {
                     path="/menu/:id"
                     element={<MenuPage />}
                 />
-                <Route
+                 <Route
                         path="/setting"
                         element={
                             <Setting />
                         }
                     />
+
+                <Route
+                    path="/group-files"
+                    element={
+                        <ProtectedRoute>
+                            <GroupFiles />
+                        </ProtectedRoute>
+                    }
+                />
                 {/* Admin */}
 
                 <Route
@@ -105,14 +121,10 @@ export default function AppRoutes() {
                             <ApprovedUser />
                         }
                     />
+                   
                     
                 
                 </Route>
-
-                <Route
-                    path="/menu/:id"
-                    element={<MenuPage />}
-                />
 
             </Routes>
 

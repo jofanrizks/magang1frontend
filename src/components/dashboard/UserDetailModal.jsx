@@ -8,7 +8,8 @@ import {
     Calendar,
     Shield,
     BadgeCheck,
-    History
+    History,
+    Users
 } from "lucide-react";
 
 import Badge from "../ui/Badge";
@@ -129,7 +130,18 @@ export default function UserDetailModal({
                         label="No HP"
                         value={user.telp}
                     />
-
+                    <InfoItem
+                        icon={<Users size={18} />}
+                        label="Group"
+                        value={
+                            user.group?.name ??
+                            (
+                                user.group_id
+                                    ? `group-${user.group_id}`
+                                    : "-"
+                            )
+                        }
+                    />
                     <InfoItem
                         icon={<Calendar size={18} />}
                         label="Tanggal Daftar"

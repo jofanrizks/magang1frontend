@@ -9,7 +9,12 @@ export async function login(data) {
 
     localStorage.setItem(
         "token",
-        response.data.token
+        response.data.data.token
+    );
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.data.user)
     );
 
     return response.data;

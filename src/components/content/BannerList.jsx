@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import {
+    Image,
+    Trash2,
+    Images,
+    Calendar,
+} from "lucide-react";
+
+import {
     getBanners,
     deleteBanner,
 } from "../../services/bannerService";
+import { API_ORIGIN } from "../../config/api";
+
+import Swal from "sweetalert2";
 
 export default function BannerList() {
 
@@ -18,9 +28,12 @@ export default function BannerList() {
 
         const res = await getBanners();
 
-        const sorted = res.data.data.sort((a, b) =>
-            a.title.localeCompare(b.title)
-        );
+        const sorted = res.data.data.sort((a, b) => {
+            const numA = parseInt(a.title.replace("Banner ", ""));
+            const numB = parseInt(b.title.replace("Banner ", ""));
+
+            return numA - numB;
+        });
 
         setBanners(sorted);
 
@@ -28,44 +41,96 @@ export default function BannerList() {
 
     async function handleDelete(id) {
 
-        if (!window.confirm("Hapus banner?")) return;
+        const result = await Swal.fire({
+            title: "Hapus Banner?",
+            text: "Banner yang dihapus tidak dapat dikembalikan.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonText: "Batal",
+            confirmButtonText: "Hapus",
+        });
+
+        if (!result.isConfirmed) return;
 
         await deleteBanner(id);
 
         loadBanner();
 
+        Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: "Banner berhasil dihapus.",
+        });
+
     }
 
     return (
 
-        <div className="bg-white rounded-3xl border shadow-sm p-8">
+        <div
+            className="
+                bg-white
+                rounded-3xl
+                border
+                border-slate-200
+                shadow-sm
+                p-8
+            "
+        >
+
+            {/* Header */}
 
             <div className="flex justify-between items-center mb-8">
 
-                <div>
+                <div className="flex items-center gap-4">
 
-                    <h2 className="text-2xl font-bold">
+                    <div
+                        className="
+                            w-14
+                            h-14
+                            rounded-2xl
+                            bg-blue-100
+                            text-blue-600
+                            flex
+                            items-center
+                            justify-center
+                        "
+                    >
 
-                        Banner Homepage
+                        <Images size={28} />
 
-                    </h2>
+                    </div>
 
-                    <p className="text-sm text-slate-500 mt-1">
+                    <div>
 
-                        Banner yang tampil pada halaman utama website.
+                        <h2 className="text-2xl font-bold text-slate-800">
 
-                    </p>
+                            Banner Homepage
+
+                        </h2>
+
+                        <p className="text-slate-500 text-sm mt-1">
+
+                            Banner yang tampil pada halaman utama website.
+
+                        </p>
+
+                    </div>
 
                 </div>
 
                 <div
                     className="
-                        bg-blue-50
-                        text-blue-700
-                        px-4
+                        bg-gradient-to-r
+                        from-blue-600
+                        to-cyan-500
+                        text-white
+                        px-5
                         py-2
                         rounded-full
+                        text-sm
                         font-semibold
+                        shadow-lg
                     "
                 >
 
@@ -75,58 +140,162 @@ export default function BannerList() {
 
             </div>
 
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Empty */}
 
-                {
+            {banners.length === 0 ? (
 
-                    banners.map((banner) => (
+                <div
+                    className="
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        py-24
+                        border-2
+                        border-dashed
+                        border-slate-200
+                        rounded-3xl
+                        bg-slate-50
+                    "
+                >
+
+                    <Image
+                        size={64}
+                        className="text-slate-300 mb-5"
+                    />
+
+                    <h3 className="text-2xl font-bold text-slate-700">
+
+                        Belum Ada Banner
+
+                    </h3>
+
+                    <p className="text-slate-500 mt-2">
+
+                        Upload banner pertama Anda.
+
+                    </p>
+
+                </div>
+
+            ) : (
+
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-7">
+
+                    {banners.map((banner) => (
 
                         <div
                             key={banner.id}
                             className="
-                                rounded-2xl
+                                group
+                                bg-white
+                                rounded-3xl
                                 overflow-hidden
                                 border
-                                bg-slate-50
-                                hover:shadow-lg
-                                transition
+                                border-slate-200
+                                hover:border-blue-300
+                                shadow-sm
+                                hover:shadow-xl
+                                transition-all
+                                duration-300
                             "
                         >
 
-                            <img
-                                src={`http://localhost:8000/storage/${banner.image}`}
-                                className="
-                                    w-full
-                                    h-52
-                                    object-cover
-                                "
-                            />
+                            {/* Image */}
 
-                            <div className="p-5">
+                            <div className="relative overflow-hidden">
 
-                                <h3 className="font-bold text-lg">
+                                <img
+                                    src={`${API_ORIGIN}/storage/${banner.image}`}
+                                    alt={banner.title}
+                                    className="
+                                        w-full
+                                        h-60
+                                        object-cover
+                                        group-hover:scale-105
+                                        transition
+                                        duration-500
+                                    "
+                                />
 
-                                    {banner.title}
+                                <div
+                                    className="
+                                        absolute
+                                        inset-0
+                                        bg-gradient-to-t
+                                        from-black/40
+                                        via-transparent
+                                        to-transparent
+                                    "
+                                />
+
+                            </div>
+
+                            {/* Content */}
+
+                            <div className="p-6">
+
+                                <h3
+                                    className="
+                                        text-xl
+                                        font-bold
+                                        text-slate-800
+                                        truncate
+                                    "
+                                >
+
+                                    {banner.title || "Tanpa Judul"}
 
                                 </h3>
+
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-2
+                                        text-slate-500
+                                        text-sm
+                                        mt-3
+                                    "
+                                >
+
+                                    <Calendar size={15} />
+
+                                    {banner.created_at
+                                        ? new Date(
+                                            banner.created_at
+                                        ).toLocaleDateString("id-ID", {
+                                            day: "2-digit",
+                                            month: "long",
+                                            year: "numeric",
+                                        })
+                                        : "Banner Homepage"}
+
+                                </div>
 
                                 <button
                                     onClick={() =>
                                         handleDelete(banner.id)
                                     }
                                     className="
-                                        mt-5
+                                        mt-6
                                         w-full
+                                        flex
+                                        items-center
+                                        justify-center
+                                        gap-2
                                         py-3
-                                        rounded-xl
+                                        rounded-2xl
                                         bg-red-500
                                         hover:bg-red-600
                                         text-white
-                                        font-medium
+                                        font-semibold
                                         transition
                                         cursor-pointer
                                     "
                                 >
+
+                                    <Trash2 size={18} />
 
                                     Hapus Banner
 
@@ -136,11 +305,11 @@ export default function BannerList() {
 
                         </div>
 
-                    ))
+                    ))}
 
-                }
+                </div>
 
-            </div>
+            )}
 
         </div>
 

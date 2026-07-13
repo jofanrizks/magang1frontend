@@ -1,7 +1,11 @@
 import BannerForm from "../components/content/BannerForm";
 import BannerList from "../components/content/BannerList";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import {
+    ArrowLeft,
+    ImagePlus,
+    Images
+} from "lucide-react";
 
 export default function Setting() {
 
@@ -9,77 +13,108 @@ export default function Setting() {
 
     return (
 
-        <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="min-h-screen bg-slate-50">
 
-            {/* Header */}
+            <div className="max-w-7xl mx-auto px-8 py-10">
 
-            <div className="flex items-center justify-between mb-10">
+                {/* Header */}
 
-                <div className="flex items-center gap-4">
+                <div
+                    className="
+                        bg-white
+                        rounded-3xl
+                        border
+                        border-slate-200
+                        shadow-sm
+                        p-8
+                        mb-8
+                    "
+                >
 
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="
-                            w-11
-                            h-11
-                            rounded-xl
-                            border
-                            bg-white
-                            hover:bg-slate-100
-                            transition
-                            flex
-                            items-center
-                            justify-center
-                            cursor-pointer
-                        "
-                    >
-                        <ArrowLeft size={20} />
-                    </button>
+                    <div className="flex items-center justify-between">
 
-                    <div>
+                        <div className="flex items-center gap-5">
 
-                        <h1 className="text-4xl font-bold text-slate-800">
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="
+                                    w-12
+                                    h-12
+                                    rounded-2xl
+                                    border
+                                    border-slate-200
+                                    bg-slate-50
+                                    hover:bg-slate-100
+                                    transition
+                                    flex
+                                    items-center
+                                    justify-center
+                                    cursor-pointer
+                                "
+                            >
 
-                            Content Management
+                                <ArrowLeft size={22} />
 
-                        </h1>
+                            </button>
 
-                        <p className="text-slate-500 mt-2">
+                            <div>
 
-                            Kelola banner homepage yang akan ditampilkan kepada pengguna.
+                                <h1 className="text-4xl font-bold text-slate-800">
 
-                        </p>
+                                    Banner Settings
+
+                                </h1>
+
+                                <p className="text-slate-500 mt-2">
+
+                                    Upload, ubah, dan kelola banner homepage
+                                    yang akan ditampilkan kepada pengguna.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-3
+                                bg-blue-50
+                                text-blue-700
+                                px-5
+                                py-3
+                                rounded-2xl
+                                font-semibold
+                            "
+                        >
+
+                            <Images size={20} />
+
+                            Homepage Banner
+
+                        </div>
 
                     </div>
 
                 </div>
 
-                <div
-                    className="
-                        bg-blue-50
-                        text-blue-700
-                        px-5
-                        py-2
-                        rounded-full
-                        font-semibold
-                    "
-                >
-                    Banner Setting
-                </div>
+                {/* Main Content */}
 
-            </div>
+                <div className="grid lg:grid-cols-12 gap-8">
 
-            <div className="grid xl:grid-cols-12 gap-8 items-start">
+                    <div className="lg:col-span-4">
 
-                <div className="xl:col-span-4">
+                        <BannerForm />
 
-                    <BannerForm />
+                    </div>
 
-                </div>
+                    <div className="lg:col-span-8">
 
-                <div className="xl:col-span-8">
+                        <BannerList />
 
-                    <BannerList />
+                    </div>
 
                 </div>
 

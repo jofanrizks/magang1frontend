@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
 import Swal from "sweetalert2";
 
 import Table from "../components/ui/Table";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
+import {
+    approveUser as approveUserApi,
+    getPendingUsers,
+    rejectUser as rejectUserApi
+} from "../services/userService";
 
 export default function PendingUser() {
 
@@ -18,9 +22,10 @@ export default function PendingUser() {
 
         try {
 
-            const res = await api.get("/users/pending");
+            const res = await getPendingUsers();
+            const payload = res.data.data;
 
-            setUsers(res.data.data);
+            setUsers(payload.data ?? payload);
 
         } catch (err) {
 
@@ -34,7 +39,7 @@ export default function PendingUser() {
 
         try {
 
-            await api.post(`/users/${id}/send-otp`);
+            await approveUserApi(id);
 
             Swal.fire(
                 "Berhasil",
@@ -75,7 +80,7 @@ export default function PendingUser() {
 
         try {
 
-            await api.post(`/users/${id}/reject`);
+            await rejectUserApi(id);
 
             Swal.fire(
                 "Berhasil",

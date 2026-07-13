@@ -1,9 +1,46 @@
+import { useEffect, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import HeroSlider from "../components/home/HeroSlider";
 import ServiceAccordion from "../components/home/ServiceAccordion";
 import Footer from "../components/home/Footer";
+import { me } from "../services/authService";
 
 export default function Home() {
+
+    const primaryColor = "#2563eb";
+
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loadingUser, setLoadingUser] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        async function fetchUser() {
+            setLoadingUser(true);
+
+            try {
+                const response = await me();
+                const user = response.data.data ?? response.data.user;
+
+                setCurrentUser(user);
+
+                if (user) {
+                    localStorage.setItem("user", JSON.stringify(user));
+                }
+            } catch (err) {
+                if (err.response?.status === 401) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                }
+            } finally {
+                setLoadingUser(false);
+            }
+        }
+
+        fetchUser();
+    }, []);
 
     const menus = [
         {
@@ -57,9 +94,13 @@ export default function Home() {
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             <Navbar />
 
-            <HeroSlider />
+            <HeroSlider primaryColor={primaryColor} />
 
-            <ServiceAccordion menus={menus} />
+            <ServiceAccordion
+                menus={menus}
+                currentUser={currentUser}
+                loadingUser={loadingUser}
+            />
 
             <Footer />
         </div>
