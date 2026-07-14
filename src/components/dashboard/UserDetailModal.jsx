@@ -137,20 +137,22 @@ export default function UserDetailModal({
                                             <h4 className="font-semibold">
                                                 {log.activity}
                                             </h4>
-
                                             <p className="mt-1 text-sm text-slate-500">
-                                                Actor: {log.actor?.nama ?? "-"}
+                                                IP: {log.ip_address ?? "-"}
                                             </p>
+                                           
                                         </div>
 
                                         <span className="text-sm font-medium text-slate-500">
                                             {formatDateTime(log.created_at)}
                                         </span>
+                                        
                                     </div>
 
                                     <p className="mt-3 text-gray-600">
                                         {log.description}
                                     </p>
+                                    
                                 </div>
                             ))
                         ) : (

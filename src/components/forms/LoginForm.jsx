@@ -6,7 +6,6 @@ import Input from "../ui/Input";
 import Button from "../ui/Button";
 
 export default function LoginForm() {
-
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
@@ -15,13 +14,12 @@ export default function LoginForm() {
     });
 
     async function handleSubmit(e) {
+        e.preventDefault();
 
-    e.preventDefault();
-
-    try {
-
-        const res = await login(form);
-        const payload = res.data.data;
+        try {
+            const res = await login(form);
+            const payload = res.data.data;
+            const user = payload.user;
 
             localStorage.setItem(
                 "token",
@@ -30,55 +28,94 @@ export default function LoginForm() {
 
             localStorage.setItem(
                 "user",
-                JSON.stringify(
-                    payload.user
-                )
+                JSON.stringify(user)
             );
+
+            const mustChangePassword =
+                user.must_change_password === true ||
+                user.must_change_password === 1 ||
+                user.must_change_password === "1";
+
+            if (mustChangePassword) {
+                await Swal.fire({
+                    icon: "warning",
+                    title: "Wajib Ganti Password",
+                    text: "Password akun Anda masih berupa password sementara. Silakan ganti password terlebih dahulu.",
+                    confirmButtonText: "Ganti Password",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+
+                navigate("/forgot-password", {
+                    replace: true,
+                    state: {
+                        nik: user.nik || form.nik,
+                        source: "must-change-password"
+                    }
+                });
+
+                return;
+            }
+
             if (
-                ["super_admin", "admin"].includes(payload.user.role)
+                ["super_admin", "admin"].includes(user.role)
             ) {
-                navigate("/dashboard");
+                navigate("/dashboard", {
+                    replace: true
+                });
             } else {
-                navigate("/home");
+                navigate("/home", {
+                    replace: true
+                });
             }
         } catch (err) {
-            if (err.response?.data?.code === "ACCOUNT_DISABLED") {
+            if (
+                err.response?.data?.code ===
+                "ACCOUNT_DISABLED"
+            ) {
                 localStorage.setItem(
                     "reactivate_nik",
                     form.nik
                 );
 
-                await Swal.fire(
-                    "Akun Nonaktif",
-                    err.response?.data?.message ||
-                    "Akun Anda nonaktif. Silakan aktifkan kembali akun.",
-                    "warning"
-                );
+                await Swal.fire({
+                    icon: "warning",
+                    title: "Akun Nonaktif",
+                    text:
+                        err.response?.data?.message ||
+                        "Akun Anda nonaktif. Silakan aktifkan kembali akun.",
+                    confirmButtonText: "Aktifkan Akun"
+                });
 
-                navigate("/reactivate-account");
+                navigate("/reactivate-account", {
+                    replace: true
+                });
+
                 return;
             }
 
-            alert(
-                err.response?.data?.message ||
-                "Login gagal"
-            );
+            await Swal.fire({
+                icon: "error",
+                title: "Login Gagal",
+                text:
+                    err.response?.data?.message ||
+                    "NIK atau password tidak valid."
+            });
         }
     }
-    return (
 
+    return (
         <form
             onSubmit={handleSubmit}
             className="space-y-4"
         >
-
             <Input
                 label="NIK"
                 value={form.nik}
-                onChange={(e)=>
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        nik:e.target.value
+                        nik: e.target.value
                     })
                 }
             />
@@ -87,20 +124,17 @@ export default function LoginForm() {
                 label="Password"
                 type="password"
                 value={form.password}
-                onChange={(e)=>
+                onChange={(e) =>
                     setForm({
                         ...form,
-                        password:e.target.value
+                        password: e.target.value
                     })
                 }
             />
 
-            <Button>
+            <Button type="submit">
                 Login
             </Button>
-
         </form>
-
     );
-
 }

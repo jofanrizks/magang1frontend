@@ -1,10 +1,19 @@
 import api from "../api/axios";
 
-export const getGroupFiles = (page = 1) => {
+export const getGroupFiles = (
+    page = 1,
+    groupId = null
+) => {
+    const params = {
+        page
+    };
+
+    if (groupId) {
+        params.group_id = groupId;
+    }
+
     return api.get("/group-files", {
-        params: {
-            page
-        }
+        params
     });
 };
 
