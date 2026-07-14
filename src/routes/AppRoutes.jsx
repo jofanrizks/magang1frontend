@@ -19,6 +19,8 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import MenuPage from "../pages/MenuPage";
 import Setting from "../pages/Setting";
+
+import ManageServices from "../pages/ManageServices";
 export default function AppRoutes() {
 
     return (
@@ -119,6 +121,12 @@ export default function AppRoutes() {
                         path="/approved-users"
                         element={
                             <ApprovedUser />
+                        }
+                    />
+                    <Route
+                        path="/manage-services"
+                        element={
+                            <ManageServices />
                         }
                     />
                    
