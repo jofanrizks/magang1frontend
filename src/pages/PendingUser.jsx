@@ -90,11 +90,11 @@ export default function PendingUser() {
 
     async function approveUser(user) {
         const result = await Swal.fire({
-            title: `Kirim OTP ke ${user.nama}?`,
-            text: "Endpoint approval yang tersedia adalah kirim OTP aktivasi.",
+            title: `Setujui ${user.nama}?`,
+            text: "User akan disetujui dan OTP aktivasi dikirim ke WhatsApp.",
             icon: "question",
             showCancelButton: true,
-            confirmButtonText: "Kirim OTP",
+            confirmButtonText: "Setujui & Kirim OTP",
             cancelButtonText: "Batal",
             confirmButtonColor: "#059669"
         });
@@ -108,7 +108,7 @@ export default function PendingUser() {
             await getUsers();
             await refreshSelectedUser(user.id);
 
-            await Swal.fire("Berhasil", "OTP berhasil dikirim.", "success");
+            await Swal.fire("Berhasil", "User disetujui dan OTP berhasil dikirim.", "success");
         } catch (err) {
             showRequestError(err, "OTP gagal dikirim.");
         } finally {
@@ -233,7 +233,7 @@ export default function PendingUser() {
                             disabled={actionLoading === `approve-${user.id}`}
                             className="w-auto rounded-lg bg-green-600 px-4 py-2 text-sm hover:bg-green-700 disabled:opacity-60"
                         >
-                            {actionLoading === `approve-${user.id}` ? "Loading..." : "Kirim OTP"}
+                            {actionLoading === `approve-${user.id}` ? "Loading..." : "Approve"}
                         </Button>
                     )}
 

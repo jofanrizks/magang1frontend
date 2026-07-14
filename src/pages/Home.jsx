@@ -4,10 +4,12 @@ import HeroSlider from "../components/home/HeroSlider";
 import ServiceAccordion from "../components/home/ServiceAccordion";
 import Footer from "../components/home/Footer";
 import { me } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
 
     const primaryColor = "#2563eb";
+    const navigate = useNavigate();
 
     const [currentUser, setCurrentUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(false);
@@ -28,6 +30,17 @@ export default function Home() {
 
                 if (user) {
                     localStorage.setItem("user", JSON.stringify(user));
+
+                    const mustChangePassword =
+                        user.must_change_password === true ||
+                        user.must_change_password === 1 ||
+                        user.must_change_password === "1";
+
+                    if (mustChangePassword) {
+                        navigate("/change-password-required", {
+                            replace: true
+                        });
+                    }
                 }
             } catch (err) {
                 if (err.response?.status === 401) {
@@ -40,7 +53,7 @@ export default function Home() {
         }
 
         fetchUser();
-    }, []);
+    }, [navigate]);
 
     const menus = [
         {

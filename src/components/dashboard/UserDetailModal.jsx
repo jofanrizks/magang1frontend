@@ -429,7 +429,7 @@ export default function UserDetailModal({
                                 className="bg-emerald-600 hover:bg-emerald-700"
                             >
                                 <Send size={16} />
-                                Kirim OTP
+                                Approve & Kirim OTP
                             </FooterButton>
                         )}
 

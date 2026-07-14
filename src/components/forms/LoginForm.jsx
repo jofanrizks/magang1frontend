@@ -46,12 +46,8 @@ export default function LoginForm() {
                     allowEscapeKey: false
                 });
 
-                navigate("/forgot-password", {
-                    replace: true,
-                    state: {
-                        nik: user.nik || form.nik,
-                        source: "must-change-password"
-                    }
+                navigate("/change-password-required", {
+                    replace: true
                 });
 
                 return;
@@ -88,6 +84,31 @@ export default function LoginForm() {
                 });
 
                 navigate("/reactivate-account", {
+                    replace: true
+                });
+
+                return;
+            }
+
+            if (
+                err.response?.data?.code ===
+                "ACCOUNT_NOT_ACTIVATED"
+            ) {
+                localStorage.setItem(
+                    "nik",
+                    form.nik
+                );
+
+                await Swal.fire({
+                    icon: "info",
+                    title: "Aktivasi Diperlukan",
+                    text:
+                        err.response?.data?.message ||
+                        "Silakan aktivasi akun menggunakan OTP.",
+                    confirmButtonText: "Aktivasi"
+                });
+
+                navigate("/otp", {
                     replace: true
                 });
 

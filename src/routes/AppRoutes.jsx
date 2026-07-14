@@ -10,6 +10,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import GroupFiles from "../pages/GroupFiles";
 import ReactivateAccount from "../pages/ReactivateAccount";
+import ChangeRequiredPassword from "../pages/ChangeRequiredPassword";
 
 import PendingUser from "../pages/PendingUser";
 import ApprovedUser from "../pages/ApprovedUser";
@@ -61,6 +62,15 @@ export default function AppRoutes() {
                     element={<ReactivateAccount />}
                 />
 
+                <Route
+                    path="/change-password-required"
+                    element={
+                        <ProtectedRoute>
+                            <ChangeRequiredPassword />
+                        </ProtectedRoute>
+                    }
+                />
+
                 
 
                 {/* User */}
@@ -77,7 +87,11 @@ export default function AppRoutes() {
 
                 <Route
                     path="/menu/:id"
-                    element={<MenuPage />}
+                    element={
+                        <ProtectedRoute>
+                            <MenuPage />
+                        </ProtectedRoute>
+                    }
                 />
                  <Route
                         path="/setting"

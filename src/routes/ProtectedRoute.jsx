@@ -84,5 +84,35 @@ export default function ProtectedRoute({
 
     }
 
+    const mustChangePassword =
+        user.must_change_password === true ||
+        user.must_change_password === 1 ||
+        user.must_change_password === "1";
+
+    const isChangePasswordPage =
+        window.location.pathname === "/change-password-required";
+
+    if (mustChangePassword && !isChangePasswordPage) {
+        return (
+            <Navigate
+                to="/change-password-required"
+                replace
+            />
+        );
+    }
+
+    if (!mustChangePassword && isChangePasswordPage) {
+        return (
+            <Navigate
+                to={
+                    ["super_admin", "admin"].includes(user.role)
+                        ? "/dashboard"
+                        : "/home"
+                }
+                replace
+            />
+        );
+    }
+
     return children;
 }

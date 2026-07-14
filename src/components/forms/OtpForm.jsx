@@ -8,6 +8,10 @@ export default function OtpForm() {
 
     const navigate = useNavigate();
 
+    const [nik, setNik] = useState(
+        localStorage.getItem("nik") || ""
+    );
+
     const [otp, setOtp] = useState("");
 
     async function handleSubmit(e) {
@@ -15,7 +19,6 @@ export default function OtpForm() {
         e.preventDefault();
 
         try {
-            const nik = localStorage.getItem("nik");
             await api.post(
                 "/activate",
                 { nik,
@@ -25,6 +28,8 @@ export default function OtpForm() {
             alert(
                 "Verifikasi berhasil"
             );
+
+            localStorage.removeItem("nik");
 
             navigate("/login");
 
@@ -45,6 +50,13 @@ export default function OtpForm() {
             onSubmit={handleSubmit}
             className="space-y-4"
         >
+            <Input
+                label="NIK"
+                value={nik}
+                onChange={(e) =>
+                    setNik(e.target.value)
+                }
+            />
 
             <Input
                 label="Kode OTP"

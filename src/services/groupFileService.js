@@ -56,7 +56,9 @@ export const deleteAdminGroupFile = (id) => {
     return api.delete(
         `/admin/group-files/${id}`
     );
-};export const moveAdminGroupFile = (
+};
+
+export const moveAdminGroupFile = (
     id,
     groupId
 ) => {

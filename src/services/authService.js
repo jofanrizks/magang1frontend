@@ -15,3 +15,7 @@ export const logout = () => {
 export const me = () => {
     return api.get("/me");
 };
+
+export const changeRequiredPassword = (data) => {
+    return api.post("/account/change-required-password", data);
+};

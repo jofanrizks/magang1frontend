@@ -308,7 +308,7 @@ function UserActionMenu({
                             onApprove && (
                                 <MenuItem
                                     icon={<Send size={17} />}
-                                    label="Kirim OTP"
+                                    label="Approve & kirim OTP"
                                     onClick={() =>
                                         runAction(onApprove)
                                     }

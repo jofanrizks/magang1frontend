@@ -1,10 +1,80 @@
-import { useParams, useNavigate } from "react-router-dom";
+import {
+    useEffect,
+    useState
+} from "react";
+import {
+    Navigate,
+    useParams,
+    useNavigate
+} from "react-router-dom";
+
+import { me } from "../services/authService";
 
 export default function MenuPage() {
 
     const { id } = useParams();
 
     const navigate = useNavigate();
+    const [currentUser, setCurrentUser] = useState(() => {
+        const stored = localStorage.getItem("user");
+
+        return stored ? JSON.parse(stored) : null;
+    });
+    const [loading, setLoading] = useState(true);
+
+    const serviceGroupId = Math.ceil(Number(id) / 4);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const response = await me();
+                const user = response.data.data ?? response.data.user;
+
+                setCurrentUser(user);
+
+                if (user) {
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(user)
+                    );
+                }
+            } catch (error) {
+                if (error.response?.status === 401) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+
+                    navigate("/login", {
+                        replace: true
+                    });
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchUser();
+    }, [navigate]);
+
+    const canAccess =
+        ["admin", "super_admin", "viewer"].includes(
+            currentUser?.role
+        ) ||
+        (
+            currentUser?.role === "user" &&
+            Number(currentUser.group_id) === serviceGroupId
+        );
+
+    if (loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-slate-100 text-slate-500">
+                Memeriksa akses...
+            </div>
+        );
+    }
+
+    if (!canAccess) {
+        return <Navigate to="/home" replace />;
+    }
 
     return (
 

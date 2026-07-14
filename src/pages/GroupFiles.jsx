@@ -17,6 +17,7 @@ import {
     Download,
     FileText,
     Loader2,
+    MoveRight,
     Trash2,
     Upload,
     X
@@ -25,11 +26,15 @@ import {
 import Navbar from "../components/layout/Navbar";
 import { API_ORIGIN } from "../config/api";
 import {
+    deleteAdminGroupFile,
     deleteGroupFile,
     getGroupFiles,
+    moveAdminGroupFile,
+    uploadAdminGroupFile,
     uploadGroupFile
 } from "../services/groupFileService";
 import { me } from "../services/authService";
+import { getGroups } from "../services/userService";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -97,6 +102,10 @@ export default function GroupFiles() {
     });
 
     const [currentUser, setCurrentUser] = useState(null);
+    const [groups, setGroups] = useState([]);
+    const [selectedGroupId, setSelectedGroupId] = useState(
+        requestedGroupId || ""
+    );
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
@@ -109,6 +118,9 @@ export default function GroupFiles() {
 
     const isUser = currentUser?.role === "user";
     const isViewer = currentUser?.role === "viewer";
+    const isAdmin = ["admin", "super_admin"].includes(
+        currentUser?.role
+    );
 
     /*
     |--------------------------------------------------------------------------
@@ -120,21 +132,30 @@ export default function GroupFiles() {
     |
     */
 
-    const canUpload = isUser;
+    const canUpload = isUser || isAdmin;
 
     const subtitle = useMemo(() => {
         if (group?.name) {
             return `Group: ${group.name}`;
         }
 
-        if (requestedGroupId) {
-            return `Group: group-${requestedGroupId}`;
+        const activeGroupId =
+            isAdmin ? selectedGroupId : requestedGroupId;
+
+        if (activeGroupId) {
+            return `Group: group-${activeGroupId}`;
+        }
+
+        if (isAdmin) {
+            return "Semua group";
         }
 
         return "Group belum tersedia";
     }, [
         group,
-        requestedGroupId
+        requestedGroupId,
+        selectedGroupId,
+        isAdmin
     ]);
 
     const serviceName = useMemo(() => {
@@ -149,7 +170,7 @@ export default function GroupFiles() {
         */
 
         const serviceNumber =
-            requestedGroupId ??
+            (isAdmin ? selectedGroupId : requestedGroupId) ??
             currentUser?.group_id ??
             group?.id;
 
@@ -160,6 +181,8 @@ export default function GroupFiles() {
         return `Layanan ${serviceNumber}`;
     }, [
         requestedGroupId,
+        selectedGroupId,
+        isAdmin,
         currentUser?.group_id,
         group?.id
     ]);
@@ -203,6 +226,18 @@ export default function GroupFiles() {
         }
     }, [handleUnauthorized]);
 
+    const fetchGroups = useCallback(async () => {
+        try {
+            const response = await getGroups();
+
+            setGroups(response.data.data ?? []);
+        } catch (err) {
+            if (!handleUnauthorized(err)) {
+                setGroups([]);
+            }
+        }
+    }, [handleUnauthorized]);
+
     const fetchFiles = useCallback(
         async (page = 1) => {
             setLoading(true);
@@ -222,10 +257,10 @@ export default function GroupFiles() {
                 |
                 */
 
-                const response = await getGroupFiles(
-                    page,
-                    requestedGroupId
-                );
+                const groupId =
+                    isAdmin ? selectedGroupId : requestedGroupId;
+
+                const response = await getGroupFiles(page, groupId);
 
                 const payload = response.data.data;
                 const fileData = payload?.files;
@@ -258,15 +293,19 @@ export default function GroupFiles() {
         },
         [
             handleUnauthorized,
-            requestedGroupId
+            requestedGroupId,
+            selectedGroupId,
+            isAdmin
         ]
     );
 
     useEffect(() => {
         fetchCurrentUser();
+        fetchGroups();
         fetchFiles(1);
     }, [
         fetchCurrentUser,
+        fetchGroups,
         fetchFiles
     ]);
 
@@ -292,6 +331,16 @@ export default function GroupFiles() {
         */
 
         if (!canUpload) {
+            return;
+        }
+
+        if (isAdmin && !selectedGroupId) {
+            Swal.fire({
+                icon: "warning",
+                title: "Pilih group",
+                text: "Pilih group tujuan sebelum upload file."
+            });
+
             return;
         }
 
@@ -361,7 +410,14 @@ export default function GroupFiles() {
         setUploading(true);
 
         try {
-            await uploadGroupFile(formData);
+            if (isAdmin) {
+                await uploadAdminGroupFile(
+                    selectedGroupId,
+                    selectedFile
+                );
+            } else {
+                await uploadGroupFile(formData);
+            }
 
             await Swal.fire({
                 icon: "success",
@@ -401,9 +457,12 @@ export default function GroupFiles() {
         */
 
         const canDelete =
-            currentUser?.role === "user" &&
-            Number(file.user_id) ===
-                Number(currentUser?.id);
+            isAdmin ||
+            (
+                currentUser?.role === "user" &&
+                Number(file.user_id) ===
+                    Number(currentUser?.id)
+            );
 
         if (!canDelete) {
             await Swal.fire({
@@ -432,7 +491,11 @@ export default function GroupFiles() {
         setDeletingId(file.id);
 
         try {
-            await deleteGroupFile(file.id);
+            if (isAdmin) {
+                await deleteAdminGroupFile(file.id);
+            } else {
+                await deleteGroupFile(file.id);
+            }
 
             await Swal.fire({
                 icon: "success",
@@ -465,6 +528,59 @@ export default function GroupFiles() {
         }
     }
 
+    async function handleMove(file) {
+        if (!isAdmin) {
+            return;
+        }
+
+        const inputOptions = groups.reduce((options, item) => {
+            if (Number(item.id) !== Number(file.group_id)) {
+                options[item.id] = item.name;
+            }
+
+            return options;
+        }, {});
+
+        const result = await Swal.fire({
+            title: "Pindahkan file",
+            input: "select",
+            inputOptions,
+            inputPlaceholder: "Pilih group tujuan",
+            showCancelButton: true,
+            confirmButtonText: "Pindahkan",
+            cancelButtonText: "Batal",
+            inputValidator: (value) => {
+                if (!value) {
+                    return "Group tujuan wajib dipilih.";
+                }
+
+                return null;
+            }
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            await moveAdminGroupFile(file.id, result.value);
+
+            await Swal.fire(
+                "Berhasil",
+                "File berhasil dipindahkan.",
+                "success"
+            );
+
+            await fetchFiles(currentPage);
+        } catch (err) {
+            await Swal.fire(
+                "Gagal",
+                getErrorMessage(err, "File gagal dipindahkan."),
+                "error"
+            );
+        }
+    }
+
     return (
         <div className="min-h-screen bg-slate-50">
             <Navbar />
@@ -494,6 +610,31 @@ export default function GroupFiles() {
                         </div>
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                            {isAdmin && (
+                                <select
+                                    value={selectedGroupId}
+                                    onChange={(event) => {
+                                        setSelectedGroupId(event.target.value);
+                                        setPagination({
+                                            current_page: 1,
+                                            last_page: 1,
+                                            total: 0
+                                        });
+                                    }}
+                                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Semua group</option>
+                                    {groups.map((item) => (
+                                        <option
+                                            key={item.id}
+                                            value={item.id}
+                                        >
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+
                             <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
                                 {serviceName}
                             </div>
@@ -597,6 +738,12 @@ export default function GroupFiles() {
                                             Uploader
                                         </th>
 
+                                        {isAdmin && (
+                                            <th className="px-6 py-4 text-left text-sm font-semibold uppercase text-slate-600">
+                                                Group
+                                            </th>
+                                        )}
+
                                         <th className="px-6 py-4 text-left text-sm font-semibold uppercase text-slate-600">
                                             Tipe
                                         </th>
@@ -633,14 +780,17 @@ export default function GroupFiles() {
                                             */
 
                                             const canDelete =
-                                                currentUser?.role ===
-                                                    "user" &&
-                                                Number(
-                                                    file.user_id
-                                                ) ===
+                                                isAdmin ||
+                                                (
+                                                    currentUser?.role ===
+                                                        "user" &&
                                                     Number(
-                                                        currentUser?.id
-                                                    );
+                                                        file.user_id
+                                                    ) ===
+                                                        Number(
+                                                            currentUser?.id
+                                                        )
+                                                );
 
                                             return (
                                                 <tr
@@ -668,6 +818,14 @@ export default function GroupFiles() {
                                                             ?.nama ||
                                                             "-"}
                                                     </td>
+
+                                                    {isAdmin && (
+                                                        <td className="px-6 py-4 text-sm text-slate-700">
+                                                            {file.group
+                                                                ?.name ||
+                                                                `group-${file.group_id}`}
+                                                        </td>
+                                                    )}
 
                                                     <td className="px-6 py-4 text-sm text-slate-700">
                                                         {file.mime_type ||
@@ -704,6 +862,25 @@ export default function GroupFiles() {
                                                                         }
                                                                     />
                                                                 </a>
+                                                            )}
+
+                                                            {isAdmin && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleMove(
+                                                                            file
+                                                                        )
+                                                                    }
+                                                                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200"
+                                                                    title="Pindahkan file"
+                                                                >
+                                                                    <MoveRight
+                                                                        size={
+                                                                            18
+                                                                        }
+                                                                    />
+                                                                </button>
                                                             )}
 
                                                             {canDelete && (

@@ -339,12 +339,12 @@ export default function Dashboard() {
 
     async function handleApprove(user) {
         const result = await Swal.fire({
-            title: `Kirim OTP ke ${user.nama}?`,
+            title: `Setujui ${user.nama}?`,
             text:
-                "Endpoint approval yang tersedia adalah kirim OTP aktivasi.",
+                "User akan disetujui dan OTP aktivasi dikirim ke WhatsApp.",
             icon: "question",
             showCancelButton: true,
-            confirmButtonText: "Kirim OTP",
+            confirmButtonText: "Setujui & Kirim OTP",
             cancelButtonText: "Batal",
             confirmButtonColor: "#059669"
         });
@@ -366,7 +366,7 @@ export default function Dashboard() {
 
             await Swal.fire(
                 "Berhasil",
-                "OTP berhasil dikirim.",
+                "User disetujui dan OTP berhasil dikirim.",
                 "success"
             );
         } catch (error) {
