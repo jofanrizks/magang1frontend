@@ -8,6 +8,9 @@ import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import GroupFiles from "../pages/GroupFiles";
+import ReactivateAccount from "../pages/ReactiveAccount";
+import ChangeRequiredPassword from "../pages/ChangeRequiredPassword";
 
 import PendingUser from "../pages/PendingUser";
 import ApprovedUser from "../pages/ApprovedUser";
@@ -17,6 +20,8 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import MenuPage from "../pages/MenuPage";
 import Setting from "../pages/Setting";
+
+import ManageServices from "../pages/ManageService";
 
 import Profile from "../pages/Profile";
 export default function AppRoutes() {
@@ -54,7 +59,19 @@ export default function AppRoutes() {
                     element={<ResetPassword />}
                 />
 
-                
+                <Route
+                    path="/reactivate-account"
+                    element={<ReactivateAccount />}
+                />
+
+                <Route
+                    path="/change-password-required"
+                    element={
+                        <ProtectedRoute>
+                            <ChangeRequiredPassword />
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* User */}
 
@@ -70,17 +87,32 @@ export default function AppRoutes() {
 
                 <Route
                     path="/menu/:id"
-                    element={<MenuPage />}
+                    element={
+                        <ProtectedRoute>
+                            <MenuPage />
+                       </ProtectedRoute>
+                    }
                 />
+
                 <Route
                         path="/setting"
                         element={
                             <Setting />
                         }
                     />
+
                 <Route 
                     path="/profile"
                     element={<Profile />}
+                />
+
+                <Route 
+                    path="/group-files"
+                    element={
+                        <ProtectedRoute>
+                            <Profile />
+                        </ProtectedRoute>
+                    }
                 />
                 
                 {/* Admin */}
@@ -88,7 +120,7 @@ export default function AppRoutes() {
                 <Route
                     element={
                         <ProtectedRoute
-                            role="admin"
+                            role={["super_admin", "admin"]}
                         >
                             <MainLayout />
                         </ProtectedRoute>
@@ -112,14 +144,14 @@ export default function AppRoutes() {
                             <ApprovedUser />
                         }
                     />
-                    
+                    <Route
+                        path="/manage-services"
+                        element={
+                            <ManageServices />
+                        }
+                    />
                 
                 </Route>
-
-                <Route
-                    path="/menu/:id"
-                    element={<MenuPage />}
-                />
 
             </Routes>
 

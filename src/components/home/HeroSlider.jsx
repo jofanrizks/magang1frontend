@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getBanners } from "../../services/bannerService";
+import { API_ORIGIN } from "../../config/api";
 
 export default function HeroSlider({
     primaryColor
@@ -21,7 +22,7 @@ export default function HeroSlider({
 
             setBanners(
                 res.data.data.map((banner) => ({
-                    image: `http://127.0.0.1:8000/storage/${banner.image}`,
+                    image: `${API_ORIGIN}/storage/${banner.image}`,
                     title: banner.title,
                     description: banner.description,
                 }))

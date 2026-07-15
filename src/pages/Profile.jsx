@@ -42,7 +42,7 @@ export default function Profile() {
 
                 const res = await me();
 
-                setUser(res.data);
+                setUser(res.data.data);
 
             } catch (err) {
 
@@ -150,18 +150,9 @@ export default function Profile() {
                                     justify-center
                                 "
                             >
-
-                                <span 
-                                    className="
-                                        text-4xl
-                                        font-bold
-                                        text-slate-800
-                                    "   
-                                >
-
-                                    {user.nama.charAt(0)}
-
-                                </span>
+                                <User
+                                                                    
+                                ></User>
 
                             </div>
 

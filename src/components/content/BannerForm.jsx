@@ -28,17 +28,11 @@ export default function BannerForm() {
         formData.append("images[]", image);
 
         try {
-
             await uploadBanner(formData);
-
             alert("Banner berhasil diperbarui.");
-
             window.location.reload();
-
         } catch (err) {
-
             console.log(err.response?.data);
-
         }
 
     }
@@ -77,25 +71,17 @@ export default function BannerForm() {
                         shadow-lg
                     "
                 >
-
                     <ImagePlus size={28} />
-
                 </div>
 
                 <div>
-
                     <h2 className="text-2xl font-bold text-slate-800">
-
                         Upload Banner
-
                     </h2>
 
                     <p className="text-sm text-slate-500 mt-1">
-
                         Upload atau ganti banner homepage.
-
                     </p>
-
                 </div>
 
             </div>
@@ -110,9 +96,7 @@ export default function BannerForm() {
                 <div>
 
                     <label className="block text-sm font-semibold mb-2 text-slate-700">
-
                         Slot Banner
-
                     </label>
 
                     <select
@@ -134,39 +118,27 @@ export default function BannerForm() {
                     >
 
                         <option value="">
-
                             Pilih Slot Banner
-
                         </option>
 
                         <option value="Banner 1">
-
                             Banner 1
-
                         </option>
 
                         <option value="Banner 2">
-
                             Banner 2
-
                         </option>
 
                         <option value="Banner 3">
-
                             Banner 3
-
                         </option>
 
                         <option value="Banner 4">
-
                             Banner 4
-
                         </option>
 
                         <option value="Banner 5">
-
                             Banner 5
-
                         </option>
 
                     </select>
@@ -178,9 +150,7 @@ export default function BannerForm() {
                 <div>
 
                     <label className="block text-sm font-semibold mb-3 text-slate-700">
-
                         Gambar Banner
-
                     </label>
 
                     <label
@@ -208,15 +178,11 @@ export default function BannerForm() {
                         />
 
                         <span className="font-medium text-slate-700">
-
                             Klik untuk memilih gambar
-
                         </span>
 
                         <span className="text-sm text-slate-500">
-
                             JPG, PNG maksimal 2 MB
-
                         </span>
 
                         <input
@@ -239,9 +205,7 @@ export default function BannerForm() {
                     <div>
 
                         <label className="block text-sm font-semibold mb-3">
-
                             Preview
-
                         </label>
 
                         <div
@@ -314,7 +278,6 @@ export default function BannerForm() {
                         cursor-pointer
                     "
                 >
-
                     Simpan Banner
 
                 </button>

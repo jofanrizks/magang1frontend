@@ -18,8 +18,7 @@ export default function OtpForm() {
             const nik = localStorage.getItem("nik");
             await api.post(
                 "/activate",
-                { nik,
-                    otp }
+                { nik, otp }
             );
 
             alert(
@@ -49,8 +48,9 @@ export default function OtpForm() {
             <Input
                 label="Kode OTP"
                 value={otp}
+                maxLength={6}
                 onChange={(e)=>
-                    setOtp(e.target.value)
+                    setOtp(e.target.value.replace(/\D/g, ""))
                 }
             />
 

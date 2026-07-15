@@ -73,6 +73,8 @@ export default function ResetPassword() {
 
                 <input
                     placeholder="OTP"
+                    maxLength={6}
+                    value={form.otp}
                     className="w-full border p-3 rounded-xl"
                     onChange={(e)=>
                         setForm({

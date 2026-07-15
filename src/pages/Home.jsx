@@ -1,9 +1,58 @@
+import { useEffect, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import HeroSlider from "../components/home/HeroSlider";
 import ServiceAccordion from "../components/home/ServiceAccordion";
 import Footer from "../components/home/Footer";
+import { me } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+
+    const navigate = useNavigate();
+
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loadingUser, setLoadingUser] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token) return;
+
+        async function fetchUser() {
+            setLoadingUser(true);
+
+            try {
+                const response = await me();
+                const user = response.data.data ?? response.data.user;
+
+                setCurrentUser(user);
+
+                if (user) {
+                    localStorage.setItem("user", JSON.stringify(user));
+
+                    const mustChangePassword =
+                        user.must_change_password === true ||
+                        user.must_change_password === 1 ||
+                        user.must_change_password === "1";
+
+                    if (mustChangePassword) {
+                        navigate("/change-password-required", {
+                            replace: true
+                        });
+                    }
+                }
+            } catch (err) {
+                if (err.response?.status === 401) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                }
+            } finally {
+                setLoadingUser(false);
+            }
+        }
+
+        fetchUser();
+    }, [navigate]);
 
     const menus = [
         {
@@ -60,7 +109,12 @@ export default function Home() {
                 
             <HeroSlider />
 
-            <ServiceAccordion menus={menus} />
+            <ServiceAccordion 
+                menus={menus}
+                currentUser={currentUser}
+                loadingUser={loadingUser}
+            
+            />
 
             <Footer />
             

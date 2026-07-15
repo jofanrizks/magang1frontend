@@ -24,27 +24,42 @@ export default function Sidebar() {
         {
             name: "Dashboard",
             path: "/dashboard",
-            icon: LayoutDashboard
+            icon: LayoutDashboard,
+            roles: ["admin", "super_admin"]
         },
         {
             name: "Pending User",
             path: "/pending-users",
-            icon: Clock3
+            icon: Clock3,
+            roles: ["admin", "super_admin"]
         },
         {
             name: "Approved User",
             path: "/approved-users",
-            icon: CheckCircle2
+            icon: CheckCircle2,
+            roles: ["admin", "super_admin"]
         },
-    
-    ];
+        {
+            name: "Kelola Layanan",
+            path: "/manage-services",
+            icon: FolderCog,
+            roles: [
+                "admin",
+                "super_admin"
+            ]
+        }
+    ].filter((menu) =>
+        menu.roles.includes(user?.role)
+    );
 
     function logout() {
 
         localStorage.removeItem("token");
         localStorage.removeItem("user");
 
-        navigate("/login");
+        navigate("/login", {
+            replace: true
+        });
 
     }
 
@@ -61,7 +76,11 @@ export default function Sidebar() {
                 flex-col
                 transition-all
                 duration-300
-                ${collapsed ? "w-20" : "w-72"}
+                ${
+                    collapsed 
+                        ? "w-20" 
+                        : "w-72"
+                }
             `}
         >
 
@@ -115,11 +134,8 @@ export default function Sidebar() {
                                     />
                                 </>
 
-
                             ) : (
-
                                 <span>S</span>
-
                             )}
 
                         </button>
@@ -127,28 +143,28 @@ export default function Sidebar() {
                         {collapsed && (
 
                             <div
-                                    className="
-                                        absolute
-                                        left-16
-                                        top-1/2
-                                        -translate-y-1/2
-                                        whitespace-nowrap
-                                        rounded-lg
-                                        bg-slate-900/95
-                                        backdrop-blur-md
-                                        px-3
-                                        py-2
-                                        text-sm
-                                        font-medium
-                                        shadow-2xl
-                                        opacity-0
-                                        invisible
-                                        group-hover:opacity-100
-                                        group-hover:visible
-                                        transition-all
-                                        duration-200
-                                        z-50
-                                    "
+                                className="
+                                    absolute
+                                    left-16
+                                    top-1/2
+                                    -translate-y-1/2
+                                    whitespace-nowrap
+                                    rounded-lg
+                                    bg-slate-900/95
+                                    backdrop-blur-md
+                                    px-3
+                                    py-2
+                                    text-sm
+                                    font-medium
+                                    shadow-2xl
+                                    opacity-0
+                                    invisible
+                                    group-hover:opacity-100
+                                    group-hover:visible
+                                    transition-all
+                                    duration-200
+                                    z-50
+                                "
                                 >
 
                                     Buka Sidebar
@@ -251,7 +267,7 @@ export default function Sidebar() {
                         </p>
 
                         <p className="text-sm text-slate-400 mt-1">
-                            {user?.jabatan || "Admin"}
+                            {user?.role?.replace("_", " ") || "Admin"}
                         </p>
 
                     </div>
@@ -268,7 +284,7 @@ export default function Sidebar() {
                     const Icon = menu.icon;
 
                     const active =
-                        location.pathname === menu.path;
+                        location.pathname === menu.path || location.pathname.startsWith(`${menu.path}/`);
 
                     return (
 
@@ -304,9 +320,7 @@ export default function Sidebar() {
                                 {!collapsed && (
 
                                     <span className="text-sm font-medium">
-
                                         {menu.name}
-
                                     </span>
 
                                 )}
@@ -366,7 +380,6 @@ export default function Sidebar() {
                         className="
                             w-full
                             h-11
-
                             flex
                             items-center
                             justify-center
@@ -384,9 +397,7 @@ export default function Sidebar() {
                         {!collapsed && (
 
                             <span>
-
                                 Logout
-
                             </span>
 
                         )}
