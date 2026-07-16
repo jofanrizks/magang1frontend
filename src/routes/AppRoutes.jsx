@@ -93,13 +93,7 @@ export default function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
-                 <Route
-                        path="/setting"
-                        element={
-                            <Setting />
-                        }
-                    />
-
+                
                 <Route
                     path="/group-files"
                     element={
@@ -143,6 +137,13 @@ export default function AppRoutes() {
                             <ManageServices />
                         }
                     />
+                     <Route
+                        path="/setting"
+                        element={
+                            <Setting />
+                        }
+                    />
+
                    
                     
                 
