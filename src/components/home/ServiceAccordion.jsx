@@ -9,6 +9,7 @@ import {
     ArrowRight,
     Lock
 } from "lucide-react";
+import { getUserGroupIds } from "../../utils/groups";
 
 export default function ServiceAccordion({
     menus,
@@ -19,35 +20,19 @@ export default function ServiceAccordion({
 
     const [openMenu, setOpenMenu] = useState({});
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hak akses layanan
-    |--------------------------------------------------------------------------
-    |
-    | Viewer:
-    | - dapat membuka seluruh layanan
-    | - tidak memiliki group_id
-    | - hanya memiliki akses baca pada halaman Group Files
-    |
-    | User:
-    | - hanya dapat membuka layanan sesuai group_id
-    |
-    */
+    const userGroupIds = getUserGroupIds(currentUser);
 
     function canAccessService(serviceNumber) {
         if (!currentUser) {
             return false;
         }
 
-        if (currentUser.role === "viewer") {
+        if (["admin", "super_admin", "viewer"].includes(currentUser.role)) {
             return true;
         }
 
         if (currentUser.role === "user") {
-            return (
-                Number(serviceNumber) ===
-                Number(currentUser.group_id)
-            );
+            return userGroupIds.includes(Number(serviceNumber));
         }
 
         return false;

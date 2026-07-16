@@ -29,6 +29,7 @@ import {
     canRejectUser,
     canResetPassword
 } from "../../utils/userPermissions";
+import { formatUserGroups } from "../../utils/groups";
 
 export default function UserDetailModal({
     user,
@@ -137,10 +138,7 @@ export default function UserDetailModal({
                                     <InfoItem
                                         icon={<Users size={18} />}
                                         label="Group"
-                                        value={
-                                            user.group?.name ??
-                                            "-"
-                                        }
+                                        value={formatUserGroups(user)}
                                     />
                                 )}
                             </div>

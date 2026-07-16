@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 
 import { me } from "../services/authService";
+import { getUserGroupIds } from "../utils/groups";
 
 export default function MenuPage() {
 
@@ -55,13 +56,15 @@ export default function MenuPage() {
         fetchUser();
     }, [navigate]);
 
+    const userGroupIds = getUserGroupIds(currentUser);
+
     const canAccess =
         ["admin", "super_admin", "viewer"].includes(
             currentUser?.role
         ) ||
         (
             currentUser?.role === "user" &&
-            Number(currentUser.group_id) === serviceGroupId
+            userGroupIds.includes(serviceGroupId)
         );
 
     if (loading) {

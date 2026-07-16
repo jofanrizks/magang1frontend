@@ -21,6 +21,7 @@ import {
     canRejectUser,
     canResetPassword
 } from "../../utils/userPermissions";
+import { formatUserGroups } from "../../utils/groups";
 
 export default function userTableColumns({
     currentUser,
@@ -85,9 +86,9 @@ export default function userTableColumns({
                         {user.telp ?? "-"}
                     </p>
 
-                    {user.role === "user" && user.group?.name && (
+                    {user.role === "user" && (
                         <p className="mt-1 text-xs text-slate-500">
-                            {user.group.name}
+                            {formatUserGroups(user)}
                         </p>
                     )}
                 </div>
