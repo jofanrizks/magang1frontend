@@ -12,6 +12,7 @@ export default function RegisterForm() {
     const [groups, setGroups] = useState([]);
     const [loadingGroups, setLoadingGroups] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [form, setForm] = useState({
         role: "user",
@@ -50,9 +51,20 @@ export default function RegisterForm() {
     function handleChange(e) {
         const { name, value } = e.target;
 
+        let normalizedValue = value;
+
+        if (name === "nik" || name === "telp") {
+            normalizedValue = value.replace(/\D/g, "");
+        }
+
         setForm((prevForm) => ({
             ...prevForm,
-            [name]: value
+            [name]: normalizedValue
+        }));
+
+        setErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: ""
         }));
     }
 
@@ -60,11 +72,16 @@ export default function RegisterForm() {
         setForm((prevForm) => ({
             ...prevForm,
             role,
+            group_ids:
+                role === "viewer"
+                    ? []
+                    : prevForm.group_ids
+        }));
 
-            // Viewer tidak memiliki group.
-            group_ids: role === "viewer"
-                ? []
-                : prevForm.group_ids
+        setErrors((prevErrors) => ({
+            ...prevErrors,
+            role: "",
+            group_ids: ""
         }));
     }
 
@@ -82,19 +99,111 @@ export default function RegisterForm() {
                     numericGroupId
                 ]
         }));
+
+        setErrors((prevErrors) => ({
+            ...prevErrors,
+            group_ids: ""
+        }));
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
+    function validateForm() {
+        const newErrors = {};
+
+        if (!form.role) {
+            newErrors.role = "Jenis akun wajib dipilih.";
+        } else if (!["user", "viewer"].includes(form.role)) {
+            newErrors.role = "Jenis akun tidak valid.";
+        }
+
+        if (!form.nik.trim()) {
+            newErrors.nik = "NIK wajib diisi.";
+        } else if (!/^\d{16}$/.test(form.nik)) {
+            newErrors.nik =
+                "NIK harus terdiri dari tepat 16 digit angka.";
+        }
+
+        if (!form.nama.trim()) {
+            newErrors.nama = "Nama wajib diisi.";
+        } else if (form.nama.trim().length < 3) {
+            newErrors.nama = "Nama minimal 3 karakter.";
+        } else if (
+            !/^[A-Za-zÀ-ÿ.'\s-]+$/.test(form.nama.trim())
+        ) {
+            newErrors.nama =
+                "Nama hanya boleh berisi huruf, spasi, titik, petik, dan tanda hubung.";
+        }
+
+        if (!form.instansi.trim()) {
+            newErrors.instansi = "Instansi wajib diisi.";
+        } else if (form.instansi.trim().length < 3) {
+            newErrors.instansi =
+                "Instansi minimal 3 karakter.";
+        }
+
+        if (!form.jabatan.trim()) {
+            newErrors.jabatan = "Jabatan wajib diisi.";
+        } else if (form.jabatan.trim().length < 2) {
+            newErrors.jabatan =
+                "Jabatan minimal 2 karakter.";
+        }
+
+        if (!form.telp.trim()) {
+            newErrors.telp = "Nomor HP wajib diisi.";
+        } else if (
+            !/^(08\d{8,11}|62\d{8,13})$/.test(form.telp)
+        ) {
+            newErrors.telp =
+                "Nomor HP harus diawali 08 atau 62 dan terdiri dari 10–15 digit.";
+        }
 
         if (
             form.role === "user" &&
             form.group_ids.length === 0
         ) {
+            newErrors.group_ids =
+                "Pilih minimal satu group untuk akun User.";
+        }
+
+        if (!form.password) {
+            newErrors.password = "Password wajib diisi.";
+        } else if (form.password.length < 8) {
+            newErrors.password =
+                "Password minimal 8 karakter.";
+        } else if (!/[A-Z]/.test(form.password)) {
+            newErrors.password =
+                "Password harus memiliki minimal satu huruf besar.";
+        } else if (!/[a-z]/.test(form.password)) {
+            newErrors.password =
+                "Password harus memiliki minimal satu huruf kecil.";
+        } else if (!/[0-9]/.test(form.password)) {
+            newErrors.password =
+                "Password harus memiliki minimal satu angka.";
+        }
+
+        if (!form.password_confirmation) {
+            newErrors.password_confirmation =
+                "Konfirmasi password wajib diisi.";
+        } else if (
+            form.password_confirmation !== form.password
+        ) {
+            newErrors.password_confirmation =
+                "Konfirmasi password tidak sama dengan password.";
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+
+        if (!validateForm()) {
             await Swal.fire({
                 icon: "warning",
-                title: "Group Wajib Dipilih",
-                text: "Pilih minimal satu group untuk akun User."
+                title: "Data Belum Sesuai",
+                text:
+                    "Periksa kembali data registrasi yang ditandai."
             });
 
             return;
@@ -104,13 +213,19 @@ export default function RegisterForm() {
 
         try {
             const payload = {
-                ...form,
-
-                // Viewer tidak perlu mengirim relasi group.
+                role: form.role,
+                nik: form.nik.trim(),
+                nama: form.nama.trim(),
+                instansi: form.instansi.trim(),
+                jabatan: form.jabatan.trim(),
+                telp: form.telp.trim(),
                 group_ids:
                     form.role === "user"
                         ? form.group_ids
-                        : []
+                        : [],
+                password: form.password,
+                password_confirmation:
+                    form.password_confirmation
             };
 
             await api.post("/register", payload);
@@ -124,46 +239,21 @@ export default function RegisterForm() {
                     "Registrasi berhasil. Silakan menunggu persetujuan administrator."
             });
 
-            navigate("/login");
+            navigate("/otp");
         } catch (err) {
-            const errors = err.response?.data?.errors;
+            const backendErrors =
+                err.response?.data?.errors;
 
             const pesan = [];
 
-            if (errors?.role) {
-                pesan.push(errors.role[0]);
-            }
-
-            if (errors?.nik) {
-                pesan.push(errors.nik[0]);
-            }
-
-            if (errors?.nama) {
-                pesan.push(errors.nama[0]);
-            }
-
-            if (errors?.instansi) {
-                pesan.push(errors.instansi[0]);
-            }
-
-            if (errors?.jabatan) {
-                pesan.push(errors.jabatan[0]);
-            }
-
-            if (errors?.telp) {
-                pesan.push(errors.telp[0]);
-            }
-
-            if (errors?.group_ids) {
-                pesan.push(errors.group_ids[0]);
-            }
-
-            if (errors?.password) {
-                pesan.push(errors.password[0]);
-            }
-
-            if (errors?.password_confirmation) {
-                pesan.push(errors.password_confirmation[0]);
+            if (backendErrors) {
+                Object.values(backendErrors).forEach(
+                    (messages) => {
+                        if (Array.isArray(messages)) {
+                            pesan.push(...messages);
+                        }
+                    }
+                );
             }
 
             Swal.fire({
@@ -173,7 +263,7 @@ export default function RegisterForm() {
                     pesan.length > 0
                         ? pesan.join("<br>")
                         : err.response?.data?.message ||
-                          "Periksa kembali data yang diinput"
+                          "Periksa kembali data yang diinput."
             });
         } finally {
             setSubmitting(false);
@@ -185,7 +275,6 @@ export default function RegisterForm() {
             onSubmit={handleSubmit}
             className="space-y-4"
         >
-            {/* Pilihan jenis akun */}
             <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">
                     Jenis Akun
@@ -194,7 +283,9 @@ export default function RegisterForm() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
                         type="button"
-                        onClick={() => handleRoleChange("user")}
+                        onClick={() =>
+                            handleRoleChange("user")
+                        }
                         className={`
                             rounded-xl
                             border
@@ -242,7 +333,9 @@ export default function RegisterForm() {
 
                     <button
                         type="button"
-                        onClick={() => handleRoleChange("viewer")}
+                        onClick={() =>
+                            handleRoleChange("viewer")
+                        }
                         className={`
                             rounded-xl
                             border
@@ -288,6 +381,12 @@ export default function RegisterForm() {
                         </div>
                     </button>
                 </div>
+
+                {errors.role && (
+                    <p className="mt-2 text-sm text-red-600">
+                        {errors.role}
+                    </p>
+                )}
             </div>
 
             <Input
@@ -295,6 +394,10 @@ export default function RegisterForm() {
                 name="nik"
                 value={form.nik}
                 onChange={handleChange}
+                inputMode="numeric"
+                maxLength={16}
+                placeholder="Masukkan 16 digit NIK"
+                error={errors.nik}
             />
 
             <Input
@@ -302,6 +405,8 @@ export default function RegisterForm() {
                 name="nama"
                 value={form.nama}
                 onChange={handleChange}
+                placeholder="Masukkan nama lengkap"
+                error={errors.nama}
             />
 
             <Input
@@ -309,6 +414,8 @@ export default function RegisterForm() {
                 name="instansi"
                 value={form.instansi}
                 onChange={handleChange}
+                placeholder="Masukkan nama instansi"
+                error={errors.instansi}
             />
 
             <Input
@@ -316,6 +423,8 @@ export default function RegisterForm() {
                 name="jabatan"
                 value={form.jabatan}
                 onChange={handleChange}
+                placeholder="Masukkan jabatan"
+                error={errors.jabatan}
             />
 
             <Input
@@ -323,16 +432,30 @@ export default function RegisterForm() {
                 name="telp"
                 value={form.telp}
                 onChange={handleChange}
+                inputMode="numeric"
+                maxLength={15}
+                placeholder="Contoh: 081234567890"
+                error={errors.telp}
             />
 
-            {/* Group hanya untuk role user */}
             {form.role === "user" && (
                 <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                         Group
                     </label>
 
-                    <div className="rounded-lg border border-gray-300 p-3">
+                    <div
+                        className={`
+                            rounded-lg
+                            border
+                            p-3
+                            ${
+                                errors.group_ids
+                                    ? "border-red-500"
+                                    : "border-gray-300"
+                            }
+                        `}
+                    >
                         {loadingGroups ? (
                             <p className="text-sm text-gray-500">
                                 Memuat group...
@@ -365,7 +488,9 @@ export default function RegisterForm() {
                                                 Number(group.id)
                                             )}
                                             onChange={() =>
-                                                handleGroupChange(group.id)
+                                                handleGroupChange(
+                                                    group.id
+                                                )
                                             }
                                             className="
                                                 h-4
@@ -385,28 +510,43 @@ export default function RegisterForm() {
                     </div>
 
                     <p className="mt-1 text-xs text-gray-500">
-                        Pilih minimal satu group. User dapat memilih
-                        lebih dari satu group.
+                        Pilih minimal satu group. User dapat
+                        memilih lebih dari satu group.
                     </p>
+
+                    {errors.group_ids && (
+                        <p className="mt-1 text-sm text-red-600">
+                            {errors.group_ids}
+                        </p>
+                    )}
                 </div>
             )}
 
             {form.role === "viewer" && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                     <p className="text-sm text-blue-700">
-                        Akun Viewer tidak perlu memilih group dan hanya
-                        memiliki akses untuk melihat data.
+                        Akun Viewer tidak perlu memilih group dan
+                        hanya memiliki akses untuk melihat data.
                     </p>
                 </div>
             )}
 
-            <Input
-                label="Password"
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-            />
+            <div>
+                <Input
+                    label="Password"
+                    name="password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Masukkan password"
+                    error={errors.password}
+                />
+
+                <p className="mt-1 text-xs text-gray-500">
+                    Minimal 8 karakter, mengandung huruf besar,
+                    huruf kecil, dan angka.
+                </p>
+            </div>
 
             <Input
                 label="Konfirmasi Password"
@@ -414,6 +554,8 @@ export default function RegisterForm() {
                 type="password"
                 value={form.password_confirmation}
                 onChange={handleChange}
+                placeholder="Masukkan ulang password"
+                error={errors.password_confirmation}
             />
 
             <Button
