@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import Modal from "../ui/Modal";
+
+const initialForm = {
+    password: "",
+    password_confirmation: ""
+};
 
 export default function ResetPasswordModal({
     open,
@@ -12,21 +17,22 @@ export default function ResetPasswordModal({
     onClose,
     onSubmit
 }) {
-    const [form, setForm] = useState({
-        password: "",
-        password_confirmation: ""
-    });
+    const [form, setForm] = useState(initialForm);
     const [localError, setLocalError] = useState("");
 
-    useEffect(() => {
-        if (open) {
-            setForm({
-                password: "",
-                password_confirmation: ""
-            });
-            setLocalError("");
+    function resetForm() {
+        setForm(initialForm);
+        setLocalError("");
+    }
+
+    function handleCloseModal() {
+        if (loading) {
+            return;
         }
-    }, [open]);
+
+        resetForm();
+        onClose();
+    }
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -36,6 +42,7 @@ export default function ResetPasswordModal({
             return;
         }
 
+        setLocalError("");
         onSubmit(form);
     }
 
@@ -49,13 +56,13 @@ export default function ResetPasswordModal({
             open={open}
             title="Reset Password"
             description={`Reset password untuk ${user?.nama ?? "pengguna"}.`}
-            onClose={onClose}
+            onClose={handleCloseModal}
             closeDisabled={loading}
             footer={
                 <>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleCloseModal}
                         disabled={loading}
                         className="rounded-lg bg-slate-100 px-5 py-2 font-semibold text-slate-700 transition hover:bg-slate-200 disabled:opacity-60"
                     >

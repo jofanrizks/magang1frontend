@@ -6,6 +6,7 @@ import {
     useState
 } from "react";
 import {
+    useLocation,
     useNavigate,
     useSearchParams
 } from "react-router-dom";
@@ -35,6 +36,7 @@ import {
 } from "../services/groupFileService";
 import { me } from "../services/authService";
 import { getGroups } from "../services/userService";
+import { getServices } from "../services/serviceService";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -88,10 +90,26 @@ function getErrorMessage(error, fallback) {
 
 export default function GroupFiles() {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const location = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
     const fileInputRef = useRef(null);
 
-    const requestedGroupId = searchParams.get("group_id");
+    const requestedGroupId =
+        searchParams.get("group_id") ??
+        location.state?.groupId ??
+        "";
+    const requestedOptionId =
+        searchParams.get("option_id") ??
+        location.state?.optionId ??
+        "";
+
+    const requestedServiceName =
+        location.state?.serviceName || "";
+
+    const requestedOptionName =
+        location.state?.optionName || "";
+    const requestedGroupName =
+        location.state?.groupName || "";
 
     const [group, setGroup] = useState(null);
     const [files, setFiles] = useState([]);
@@ -103,8 +121,12 @@ export default function GroupFiles() {
 
     const [currentUser, setCurrentUser] = useState(null);
     const [groups, setGroups] = useState([]);
+    const [services, setServices] = useState([]);
     const [selectedGroupId, setSelectedGroupId] = useState(
         requestedGroupId || ""
+    );
+    const [selectedOptionId, setSelectedOptionId] = useState(
+        requestedOptionId || ""
     );
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -121,31 +143,70 @@ export default function GroupFiles() {
     const isAdmin = ["admin", "super_admin"].includes(
         currentUser?.role
     );
+    const activeGroupId =
+        requestedGroupId || selectedGroupId;
+    const activeOptionId =
+        requestedOptionId || selectedOptionId;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Hak akses upload
-    |--------------------------------------------------------------------------
-    |
-    | Hanya role user yang boleh upload.
-    | Viewer hanya membaca file.
-    |
-    */
 
     const canUpload = isUser || isAdmin;
+
+    const selectedService = useMemo(() => {
+        return services.find(
+            (service) =>
+                Number(service.group?.id) ===
+                Number(activeGroupId)
+        );
+    }, [
+        activeGroupId,
+        services
+    ]);
+
+    const serviceOptions = useMemo(
+        () => selectedService?.options ?? [],
+        [selectedService]
+    );
+
+    const selectedOption = useMemo(() => {
+        const optionId = Number(activeOptionId);
+
+        if (Number.isFinite(optionId) && optionId > 0) {
+            const option = serviceOptions.find(
+                (item) =>
+                    Number(item.id) === optionId
+            );
+
+            if (option) {
+                return option;
+            }
+        }
+
+        return serviceOptions[0] ?? null;
+    }, [
+        activeOptionId,
+        serviceOptions
+    ]);
+
+    const optionName =
+        selectedOption?.name ||
+        requestedOptionName;
 
     const subtitle = useMemo(() => {
         if (group?.name) {
             return `Group: ${group.name}`;
         }
 
-        const activeGroupId =
+        if (requestedGroupName) {
+            return `Group: ${requestedGroupName}`;
+        }
+
+        const displayGroupId =
             isAdmin || isUser
-                ? selectedGroupId
+                ? activeGroupId
                 : requestedGroupId;
 
-        if (activeGroupId) {
-            return `Group: group-${activeGroupId}`;
+        if (displayGroupId) {
+            return `Group: group-${displayGroupId}`;
         }
 
         if (isAdmin || isUser) {
@@ -155,38 +216,22 @@ export default function GroupFiles() {
         return "Group belum tersedia";
     }, [
         group,
+        requestedGroupName,
         requestedGroupId,
-        selectedGroupId,
+        activeGroupId,
         isAdmin,
         isUser
     ]);
 
     const serviceName = useMemo(() => {
-        /*
-        |--------------------------------------------------------------------------
-        | Penentuan layanan
-        |--------------------------------------------------------------------------
-        |
-        | Viewer mengambil layanan dari query parameter.
-        | User mengambil layanan dari group miliknya.
-        |
-        */
-
-        const serviceNumber =
-            (isAdmin || isUser ? selectedGroupId : requestedGroupId) ??
-            group?.id;
-
-        if (!serviceNumber) {
-            return "Layanan";
+        if (requestedServiceName) {
+            return requestedServiceName;
         }
 
-        return `Layanan ${serviceNumber}`;
+        return selectedService?.name ?? "Layanan";
     }, [
-        requestedGroupId,
-        selectedGroupId,
-        isAdmin,
-        isUser,
-        group?.id
+        requestedServiceName,
+        selectedService
     ]);
 
     const handleUnauthorized = useCallback(
@@ -207,63 +252,24 @@ export default function GroupFiles() {
         [navigate]
     );
 
-    const fetchCurrentUser = useCallback(async () => {
-        try {
-            const response = await me();
-
-            const user =
-                response.data.data ??
-                response.data.user;
-
-            if (user) {
-                setCurrentUser(user);
-
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(user)
-                );
-            }
-        } catch (err) {
-            handleUnauthorized(err);
-        }
-    }, [handleUnauthorized]);
-
-    const fetchGroups = useCallback(async () => {
-        try {
-            const response = await getGroups();
-
-            setGroups(response.data.data ?? []);
-        } catch (err) {
-            if (!handleUnauthorized(err)) {
-                setGroups([]);
-            }
-        }
-    }, [handleUnauthorized]);
-
     const fetchFiles = useCallback(
         async (page = 1) => {
             setLoading(true);
             setError("");
 
             try {
-                /*
-                |--------------------------------------------------------------------------
-                | Fetch file
-                |--------------------------------------------------------------------------
-                |
-                | Untuk Viewer:
-                | GET /group-files?page=1&group_id=2
-                |
-                | Untuk User:
-                | Backend menggunakan group_id request jika dipilih,
-                | atau seluruh group milik user jika kosong.
-                |
-                */
+
 
                 const groupId =
-                    isAdmin || isUser ? selectedGroupId : requestedGroupId;
+                    isAdmin || isUser ? activeGroupId : requestedGroupId;
+                const optionId =
+                    selectedOption?.id ?? activeOptionId;
 
-                const response = await getGroupFiles(page, groupId);
+                const response = await getGroupFiles(
+                    page,
+                    groupId,
+                    optionId
+                );
 
                 const payload = response.data.data;
                 const fileData = payload?.files;
@@ -297,21 +303,166 @@ export default function GroupFiles() {
         [
             handleUnauthorized,
             requestedGroupId,
-            selectedGroupId,
+            activeGroupId,
+            activeOptionId,
+            selectedOption,
             isAdmin,
             isUser
         ]
     );
 
     useEffect(() => {
-        fetchCurrentUser();
-        fetchGroups();
-        fetchFiles(1);
+        let ignore = false;
+
+        async function loadInitialData() {
+            setLoading(true);
+            setError("");
+
+            try {
+                const [
+                    userResponse,
+                    groupResponse,
+                    serviceResponse
+                ] = await Promise.all([
+                    me(),
+                    getGroups(),
+                    getServices()
+                ]);
+
+                const user =
+                    userResponse.data.data ??
+                    userResponse.data.user;
+                const serviceData =
+                    serviceResponse.data.data ?? [];
+                const role = user?.role;
+                const shouldUseSelectedGroup =
+                    ["admin", "super_admin", "user"].includes(role);
+                const groupId = shouldUseSelectedGroup
+                    ? activeGroupId
+                    : requestedGroupId;
+                const service = serviceData.find(
+                    (item) =>
+                        Number(item.group?.id) ===
+                        Number(groupId)
+                );
+                const requestedOption =
+                    service?.options?.find(
+                        (item) =>
+                            Number(item.id) ===
+                            Number(activeOptionId)
+                    );
+                const optionId =
+                    requestedOption?.id ??
+                    service?.options?.[0]?.id ??
+                    "";
+
+                const fileResponse =
+                    await getGroupFiles(
+                        1,
+                        groupId,
+                        optionId
+                    );
+
+                if (ignore) {
+                    return;
+                }
+
+                if (user) {
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(user)
+                    );
+                }
+
+                const payload = fileResponse.data.data;
+                const fileData = payload?.files;
+
+                setCurrentUser(user ?? null);
+                setGroups(groupResponse.data.data ?? []);
+                setServices(serviceData);
+                setSelectedGroupId(groupId || "");
+                setSelectedOptionId(optionId || "");
+                setGroup(payload?.group ?? null);
+                setFiles(fileData?.data ?? []);
+                setPagination({
+                    current_page:
+                        fileData?.current_page ?? 1,
+                    last_page:
+                        fileData?.last_page ?? 1,
+                    total:
+                        fileData?.total ?? 0
+                });
+            } catch (err) {
+                if (
+                    !ignore &&
+                    !handleUnauthorized(err)
+                ) {
+                    setError(
+                        getErrorMessage(
+                            err,
+                            "Gagal mengambil data file group."
+                        )
+                    );
+                }
+            } finally {
+                if (!ignore) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        void loadInitialData();
+
+        return () => {
+            ignore = true;
+        };
     }, [
-        fetchCurrentUser,
-        fetchGroups,
-        fetchFiles
+        activeGroupId,
+        activeOptionId,
+        handleUnauthorized,
+        requestedGroupId
     ]);
+
+    function syncSearchParams(
+        groupId,
+        optionId
+    ) {
+        const params = {};
+
+        if (groupId) {
+            params.group_id = String(groupId);
+        }
+
+        if (optionId) {
+            params.option_id = String(optionId);
+        }
+
+        setSearchParams(params);
+    }
+
+    function handleSelectGroup(groupId) {
+        const service = services.find(
+            (item) =>
+                Number(item.group?.id) ===
+                Number(groupId)
+        );
+        const optionId =
+            service?.options?.[0]?.id ?? "";
+
+        setSelectedGroupId(groupId);
+        setSelectedOptionId(optionId);
+        setPagination({
+            current_page: 1,
+            last_page: 1,
+            total: 0
+        });
+        syncSearchParams(groupId, optionId);
+    }
+
+    function handleSelectOption(optionId) {
+        setSelectedOptionId(optionId);
+        syncSearchParams(activeGroupId, optionId);
+    }
 
     function closeModal() {
         if (uploading) return;
@@ -325,24 +476,27 @@ export default function GroupFiles() {
     }
 
     function openUploadModal() {
-        /*
-        |--------------------------------------------------------------------------
-        | Pengaman frontend
-        |--------------------------------------------------------------------------
-        |
-        | Viewer tidak boleh membuka modal upload.
-        |
-        */
+
 
         if (!canUpload) {
             return;
         }
 
-        if ((isAdmin || isUser) && !selectedGroupId) {
+        if ((isAdmin || isUser) && !activeGroupId) {
             Swal.fire({
                 icon: "warning",
                 title: "Pilih group",
                 text: "Pilih group tujuan sebelum upload file."
+            });
+
+            return;
+        }
+
+        if (!selectedOption?.id && !activeOptionId) {
+            Swal.fire({
+                icon: "warning",
+                title: "Pilih opsi layanan",
+                text: "Pilih opsi layanan terlebih dahulu."
             });
 
             return;
@@ -378,12 +532,6 @@ export default function GroupFiles() {
     async function handleUpload(e) {
         e.preventDefault();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Viewer tidak boleh upload
-        |--------------------------------------------------------------------------
-        */
-
         if (!canUpload) {
             await Swal.fire({
                 icon: "error",
@@ -414,16 +562,22 @@ export default function GroupFiles() {
         if (isUser) {
             formData.append(
                 "group_id",
-                selectedGroupId
+                activeGroupId
             );
         }
+
+        formData.append(
+            "service_option_id",
+            selectedOption?.id ?? activeOptionId
+        );
 
         setUploading(true);
 
         try {
             if (isAdmin) {
                 await uploadAdminGroupFile(
-                    selectedGroupId,
+                    activeGroupId,
+                    selectedOption?.id ?? activeOptionId,
                     selectedFile
                 );
             } else {
@@ -458,14 +612,7 @@ export default function GroupFiles() {
     }
 
     async function handleDelete(file) {
-        /*
-        |--------------------------------------------------------------------------
-        | Pengaman delete
-        |--------------------------------------------------------------------------
-        |
-        | Hanya User pemilik file yang boleh delete.
-        |
-        */
+
 
         const canDelete =
             isAdmin ||
@@ -544,10 +691,23 @@ export default function GroupFiles() {
             return;
         }
 
-        const inputOptions = groups.reduce((options, item) => {
-            if (Number(item.id) !== Number(file.group_id)) {
-                options[item.id] = item.name;
+        const inputOptions = services.reduce((options, service) => {
+            const groupId = service.group?.id;
+
+            if (!groupId) {
+                return options;
             }
+
+            (service.options ?? []).forEach((option) => {
+                if (
+                    Number(groupId) !== Number(file.group_id) ||
+                    Number(option.id) !==
+                        Number(file.service_option_id)
+                ) {
+                    options[`${groupId}:${option.id}`] =
+                        `${service.name} - ${option.name}`;
+                }
+            });
 
             return options;
         }, {});
@@ -556,13 +716,13 @@ export default function GroupFiles() {
             title: "Pindahkan file",
             input: "select",
             inputOptions,
-            inputPlaceholder: "Pilih group tujuan",
+            inputPlaceholder: "Pilih layanan dan opsi tujuan",
             showCancelButton: true,
             confirmButtonText: "Pindahkan",
             cancelButtonText: "Batal",
             inputValidator: (value) => {
                 if (!value) {
-                    return "Group tujuan wajib dipilih.";
+                    return "Layanan dan opsi tujuan wajib dipilih.";
                 }
 
                 return null;
@@ -574,7 +734,26 @@ export default function GroupFiles() {
         }
 
         try {
-            await moveAdminGroupFile(file.id, result.value);
+            const [
+                targetGroupId,
+                targetOptionId
+            ] = String(result.value).split(":");
+
+            if (!targetGroupId || !targetOptionId) {
+                await Swal.fire(
+                    "Gagal",
+                    "Layanan dan opsi tujuan tidak valid.",
+                    "error"
+                );
+
+                return;
+            }
+
+            await moveAdminGroupFile(
+                file.id,
+                targetGroupId,
+                targetOptionId
+            );
 
             await Swal.fire(
                 "Berhasil",
@@ -602,35 +781,41 @@ export default function GroupFiles() {
                         <div className="flex items-center gap-4">
                             <button
                                 type="button"
-                                onClick={() => navigate(-1)}
+                                onClick={() =>
+                                    navigate("/", {
+                                        replace: true
+                                    })
+                                }
                                 className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-slate-50 transition hover:bg-slate-100"
-                                title="Kembali"
+                                title="Kembali ke beranda"
                             >
                                 <ArrowLeft size={20} />
                             </button>
 
                             <div>
                                 <h1 className="text-3xl font-bold text-slate-800">
-                                    File Group
+                                    {optionName || "File Group"}
                                 </h1>
 
                                 <p className="mt-1 text-slate-500">
-                                    {subtitle}
+                                    {serviceName} • {subtitle}
                                 </p>
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            {(isAdmin || isUser) && (
+                            {(isAdmin ||
+                                (isUser && !activeOptionId)) && (
                                 <select
-                                    value={selectedGroupId}
+                                    value={activeGroupId}
+                                    disabled={
+                                        isUser &&
+                                        Boolean(activeOptionId)
+                                    }
                                     onChange={(event) => {
-                                        setSelectedGroupId(event.target.value);
-                                        setPagination({
-                                            current_page: 1,
-                                            last_page: 1,
-                                            total: 0
-                                        });
+                                        handleSelectGroup(
+                                            event.target.value
+                                        );
                                     }}
                                     className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
@@ -648,9 +833,46 @@ export default function GroupFiles() {
                                 </select>
                             )}
 
+                            {serviceOptions.length > 0 && (
+                                <select
+                                    value={
+                                        selectedOption?.id ?? ""
+                                    }
+                                    onChange={(event) =>
+                                        handleSelectOption(
+                                            event.target.value
+                                        )
+                                    }
+                                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    {serviceOptions.map(
+                                        (option) => (
+                                            <option
+                                                key={
+                                                    option.id
+                                                }
+                                                value={
+                                                    option.id
+                                                }
+                                            >
+                                                {
+                                                    option.name
+                                                }
+                                            </option>
+                                        )
+                                    )}
+                                </select>
+                            )}
+
                             <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
                                 {serviceName}
                             </div>
+
+                            {optionName && (
+                                <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                                    {optionName}
+                                </div>
+                            )}
 
                             {canUpload && (
                                 <>
@@ -785,12 +1007,6 @@ export default function GroupFiles() {
                                                 getFileUrl(
                                                     file.file_path
                                                 );
-
-                                            /*
-                                            |--------------------------------------------------------------------------
-                                            | Delete permission
-                                            |--------------------------------------------------------------------------
-                                            */
 
                                             const canDelete =
                                                 isAdmin ||
@@ -997,7 +1213,15 @@ export default function GroupFiles() {
                                 </h2>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Maksimal ukuran file 10 MB
+                                    Layanan: {serviceName}
+                                </p>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Opsi: {optionName || "-"}
+                                </p>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    {subtitle}
                                 </p>
                             </div>
 

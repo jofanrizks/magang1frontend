@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react";
 import Swal from "sweetalert2";
 import {
     Plus,
@@ -30,10 +36,22 @@ import UserDetailModal from "../components/dashboard/UserDetailModal";
 import UserFormModal from "../components/dashboard/UserFormModal";
 
 import dashboardStats from "../utils/dashboardStats";
-import userTableColumns from "../components/dashboard/UserTableColumns";
+import UserTableColumns from "../components/dashboard/UserTableColumns";
 import { canCreateUsers } from "../utils/userPermissions";
 
+const emptyFilters = {
+    search: "",
+    role: "",
+    group_id: "",
+    sts: "",
+    approval: "",
+    date_from: "",
+    date_to: ""
+};
+
 export default function Dashboard() {
+    const latestRequestId = useRef(0);
+
     const [users, setUsers] = useState([]);
     const [groups, setGroups] = useState([]);
     const [selectedUser, setSelectedUser] =
@@ -72,42 +90,209 @@ export default function Dashboard() {
     const [rejectErrors, setRejectErrors] =
         useState({});
 
+    const [filters, setFilters] =
+        useState(emptyFilters);
+
+    const [debouncedSearch, setDebouncedSearch] =
+        useState("");
+
+    const [page, setPage] = useState(1);
+
+    const [pagination, setPagination] = useState({
+        current_page: 1,
+        last_page: 1,
+        total: 0,
+        per_page: 25
+    });
+
+    const roleOptions = useMemo(() => {
+        if (currentUser?.role === "super_admin") {
+            return [
+                {
+                    value: "admin",
+                    label: "Admin"
+                },
+                {
+                    value: "user",
+                    label: "User"
+                },
+                {
+                    value: "viewer",
+                    label: "Viewer"
+                }
+            ];
+        }
+
+        return [
+            {
+                value: "user",
+                label: "User"
+            },
+            {
+                value: "viewer",
+                label: "Viewer"
+            }
+        ];
+    }, [currentUser]);
+
+    const isFilterEmpty = useMemo(() => {
+        return Object.values(filters).every(
+            (value) => !value
+        );
+    }, [filters]);
+
     useEffect(() => {
-        fetchUsers();
-        fetchCurrentUser();
-        fetchGroups();
+        let ignore = false;
+
+        async function loadInitialData() {
+            try {
+                const [
+                    userResponse,
+                    groupResponse
+                ] = await Promise.all([
+                    me(),
+                    getGroups()
+                ]);
+
+                if (ignore) {
+                    return;
+                }
+
+                const payload =
+                    userResponse.data.data ??
+                    userResponse.data.user;
+
+                setCurrentUser(payload);
+                setGroups(
+                    groupResponse.data.data ?? []
+                );
+
+                if (payload) {
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(payload)
+                    );
+                }
+            } catch (error) {
+                if (!ignore) {
+                    showRequestError(
+                        error,
+                        "Gagal mengambil data awal dashboard."
+                    );
+                }
+            }
+        }
+
+        void loadInitialData();
+
+        return () => {
+            ignore = true;
+        };
     }, []);
 
-    async function fetchCurrentUser() {
-        try {
-            const response = await me();
+    useEffect(() => {
+        const timeout = window.setTimeout(() => {
+            setDebouncedSearch(filters.search);
+            setPage(1);
+        }, 400);
 
-            const payload =
-                response.data.data ??
-                response.data.user;
+        return () => window.clearTimeout(timeout);
+    }, [filters.search]);
 
-            setCurrentUser(payload);
+    useEffect(() => {
+        let ignore = false;
+        const requestId =
+            latestRequestId.current + 1;
 
-            if (payload) {
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(payload)
+        latestRequestId.current = requestId;
+
+        async function loadUsers() {
+            setListLoading(true);
+
+            try {
+                const response =
+                    await getAllUsers(
+                        userListParams(
+                            {
+                                ...filters,
+                                search: debouncedSearch
+                            },
+                            page,
+                            pagination.per_page
+                        )
+                    );
+
+                if (
+                    ignore ||
+                    latestRequestId.current !== requestId
+                ) {
+                    return;
+                }
+
+                const payload =
+                    response.data.data;
+
+                setUsers(
+                    payload?.data ??
+                    payload ??
+                    []
                 );
-            }
-        } catch (error) {
-            showRequestError(
-                error,
-                "Gagal mengambil data user aktif."
-            );
-        }
-    }
 
-    async function fetchUsers() {
+                setPagination({
+                    current_page:
+                        payload?.current_page ?? page,
+                    last_page:
+                        payload?.last_page ?? 1,
+                    total:
+                        payload?.total ?? 0,
+                    per_page:
+                        payload?.per_page ??
+                        pagination.per_page
+                });
+            } catch (error) {
+                if (!ignore) {
+                    showRequestError(
+                        error,
+                        "Gagal mengambil data pengguna."
+                    );
+                }
+            } finally {
+                if (
+                    !ignore &&
+                    latestRequestId.current === requestId
+                ) {
+                    setListLoading(false);
+                }
+            }
+        }
+
+        void loadUsers();
+
+        return () => {
+            ignore = true;
+        };
+    }, [
+        debouncedSearch,
+        filters,
+        page,
+        pagination.per_page
+    ]);
+
+    const fetchUsers = useCallback(async () => {
         try {
             setListLoading(true);
 
             const response =
-                await getAllUsers();
+                await getAllUsers(
+                    userListParams(
+                        {
+                            ...filters,
+                            search: debouncedSearch
+                        },
+                        page,
+                        pagination.per_page
+                    )
+                );
 
             const payload =
                 response.data.data;
@@ -117,6 +302,17 @@ export default function Dashboard() {
                 payload ??
                 []
             );
+            setPagination({
+                current_page:
+                    payload?.current_page ?? page,
+                last_page:
+                    payload?.last_page ?? 1,
+                total:
+                    payload?.total ?? 0,
+                per_page:
+                    payload?.per_page ??
+                    pagination.per_page
+            });
         } catch (error) {
             showRequestError(
                 error,
@@ -125,23 +321,12 @@ export default function Dashboard() {
         } finally {
             setListLoading(false);
         }
-    }
-
-    async function fetchGroups() {
-        try {
-            const response =
-                await getGroups();
-
-            setGroups(
-                response.data.data ?? []
-            );
-        } catch (error) {
-            showRequestError(
-                error,
-                "Gagal mengambil data group."
-            );
-        }
-    }
+    }, [
+        debouncedSearch,
+        filters,
+        page,
+        pagination.per_page
+    ]);
 
     async function openUser(user) {
         try {
@@ -572,11 +757,28 @@ export default function Dashboard() {
         }
     }
 
+    function updateFilter(name, value) {
+        setFilters((current) => ({
+            ...current,
+            [name]: value
+        }));
+
+        if (name !== "search") {
+            setPage(1);
+        }
+    }
+
+    function resetFilters() {
+        setFilters(emptyFilters);
+        setDebouncedSearch("");
+        setPage(1);
+    }
+
     const stats =
         dashboardStats(users);
 
     const columns =
-        userTableColumns({
+        UserTableColumns({
             currentUser,
             onDetail: openUser,
             onEdit: openEditModal,
@@ -687,6 +889,152 @@ export default function Dashboard() {
 
             {/* Table */}
 
+            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-6">
+                    <input
+                        type="text"
+                        value={filters.search}
+                        onChange={(event) =>
+                            updateFilter(
+                                "search",
+                                event.target.value
+                            )
+                        }
+                        placeholder="Cari nama, NIK, telepon, instansi, atau jabatan..."
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 lg:col-span-2"
+                    />
+
+                    <select
+                        value={filters.role}
+                        onChange={(event) =>
+                            updateFilter(
+                                "role",
+                                event.target.value
+                            )
+                        }
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">
+                            Semua Role
+                        </option>
+
+                        {roleOptions.map((role) => (
+                            <option
+                                key={role.value}
+                                value={role.value}
+                            >
+                                {role.label}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={filters.group_id}
+                        onChange={(event) =>
+                            updateFilter(
+                                "group_id",
+                                event.target.value
+                            )
+                        }
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">
+                            Semua Group
+                        </option>
+
+                        {groups.map((group) => (
+                            <option
+                                key={group.id}
+                                value={group.id}
+                            >
+                                {group.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={filters.sts}
+                        onChange={(event) =>
+                            updateFilter(
+                                "sts",
+                                event.target.value
+                            )
+                        }
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">
+                            Semua Status
+                        </option>
+                        <option value="pending">
+                            Pending
+                        </option>
+                        <option value="aktif">
+                            Aktif
+                        </option>
+                        <option value="disabled">
+                            Disabled
+                        </option>
+                    </select>
+
+                    <select
+                        value={filters.approval}
+                        onChange={(event) =>
+                            updateFilter(
+                                "approval",
+                                event.target.value
+                            )
+                        }
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">
+                            Semua Approval
+                        </option>
+                        <option value="pending">
+                            Pending
+                        </option>
+                        <option value="approved">
+                            Approved
+                        </option>
+                        <option value="rejected">
+                            Rejected
+                        </option>
+                    </select>
+
+                    <input
+                        type="date"
+                        value={filters.date_from}
+                        onChange={(event) =>
+                            updateFilter(
+                                "date_from",
+                                event.target.value
+                            )
+                        }
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <input
+                        type="date"
+                        value={filters.date_to}
+                        onChange={(event) =>
+                            updateFilter(
+                                "date_to",
+                                event.target.value
+                            )
+                        }
+                        className="rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+
+                    <button
+                        type="button"
+                        onClick={resetFilters}
+                        disabled={isFilterEmpty}
+                        className="cursor-pointer rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Reset Filter
+                    </button>
+                </div>
+            </section>
+
             <Table
                 title="Data User"
                 subtitle={
@@ -696,9 +1044,56 @@ export default function Dashboard() {
                 }
                 columns={columns}
                 data={users}
-                search
+                search={false}
+                pagination={false}
                 searchPlaceHolder="Cari User"
             />
+
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm text-slate-600 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                    Total {pagination.total} data • Halaman{" "}
+                    {pagination.current_page} dari{" "}
+                    {pagination.last_page}
+                </span>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setPage((current) =>
+                                Math.max(current - 1, 1)
+                            )
+                        }
+                        disabled={
+                            listLoading ||
+                            pagination.current_page <= 1
+                        }
+                        className="rounded-lg border px-4 py-2 font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Prev
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setPage((current) =>
+                                Math.min(
+                                    current + 1,
+                                    pagination.last_page
+                                )
+                            )
+                        }
+                        disabled={
+                            listLoading ||
+                            pagination.current_page >=
+                                pagination.last_page
+                        }
+                        className="rounded-lg border px-4 py-2 font-medium transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
 
             {/* Detail User */}
 
@@ -733,6 +1128,7 @@ export default function Dashboard() {
             {/* Form User */}
 
             <UserFormModal
+                key={`${formModal.mode}-${formModal.user?.id ?? "new"}`}
                 open={formModal.open}
                 mode={formModal.mode}
                 user={formModal.user}
@@ -747,6 +1143,7 @@ export default function Dashboard() {
             {/* Reset Password */}
 
             <ResetPasswordModal
+                key={`reset-${resetTarget?.id ?? "none"}`}
                 open={Boolean(
                     resetTarget
                 )}
@@ -762,6 +1159,7 @@ export default function Dashboard() {
             {/* Reject User */}
 
             <RejectUserModal
+                key={`reject-${rejectTarget?.id ?? "none"}`}
                 open={Boolean(
                     rejectTarget
                 )}
@@ -839,4 +1237,22 @@ function showRequestError(
         ),
         "error"
     );
+}
+
+function userListParams(
+    filters,
+    page,
+    perPage
+) {
+    return {
+        page,
+        per_page: perPage,
+        search: filters.search || undefined,
+        role: filters.role || undefined,
+        group_id: filters.group_id || undefined,
+        sts: filters.sts || undefined,
+        approval: filters.approval || undefined,
+        date_from: filters.date_from || undefined,
+        date_to: filters.date_to || undefined
+    };
 }

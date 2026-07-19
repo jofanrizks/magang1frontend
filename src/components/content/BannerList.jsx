@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState
+} from "react";
 import {
     Image,
     Trash2,
@@ -14,30 +17,38 @@ import { API_ORIGIN } from "../../config/api";
 
 import Swal from "sweetalert2";
 
+async function fetchSortedBanners() {
+    const res = await getBanners();
+
+    return [...(res.data.data ?? [])].sort((a, b) => {
+        const numA = parseInt(a.title.replace("Banner ", ""));
+        const numB = parseInt(b.title.replace("Banner ", ""));
+
+        return numA - numB;
+    });
+}
+
 export default function BannerList() {
 
     const [banners, setBanners] = useState([]);
 
     useEffect(() => {
+        let ignore = false;
 
-        loadBanner();
+        async function loadBanner() {
+            const sorted = await fetchSortedBanners();
 
+            if (!ignore) {
+                setBanners(sorted);
+            }
+        }
+
+        void loadBanner();
+
+        return () => {
+            ignore = true;
+        };
     }, []);
-
-    async function loadBanner() {
-
-        const res = await getBanners();
-
-        const sorted = res.data.data.sort((a, b) => {
-            const numA = parseInt(a.title.replace("Banner ", ""));
-            const numB = parseInt(b.title.replace("Banner ", ""));
-
-            return numA - numB;
-        });
-
-        setBanners(sorted);
-
-    }
 
     async function handleDelete(id) {
 
@@ -55,7 +66,7 @@ export default function BannerList() {
 
         await deleteBanner(id);
 
-        loadBanner();
+        setBanners(await fetchSortedBanners());
 
         Swal.fire({
             icon: "success",

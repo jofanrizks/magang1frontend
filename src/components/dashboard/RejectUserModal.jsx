@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Button from "../ui/Button";
 import Modal from "../ui/Modal";
@@ -14,12 +14,19 @@ export default function RejectUserModal({
     const [reason, setReason] = useState("");
     const [localError, setLocalError] = useState("");
 
-    useEffect(() => {
-        if (!open) {
-            setReason("");
-            setLocalError("");
+    function resetForm() {
+        setReason("");
+        setLocalError("");
+    }
+
+    function handleCloseModal() {
+        if (loading) {
+            return;
         }
-    }, [open]);
+
+        resetForm();
+        onClose();
+    }
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -50,13 +57,13 @@ export default function RejectUserModal({
             open={open}
             title="Reject Pengguna"
             description={`Tolak pengajuan ${user?.nama ?? "pengguna"}.`}
-            onClose={onClose}
+            onClose={handleCloseModal}
             closeDisabled={loading}
             footer={
                 <>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleCloseModal}
                         disabled={loading}
                         className="rounded-lg bg-slate-100 px-5 py-2 font-semibold text-slate-700 transition hover:bg-slate-200 disabled:opacity-60"
                     >

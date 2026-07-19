@@ -1,23 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import Modal from "../ui/Modal";
 import { getManageableRoles } from "../../utils/userPermissions";
-
-const emptyForm = {
-    role: "user",
-    nik: "",
-    nama: "",
-    instansi: "",
-    jabatan: "",
-    telp: "",
-    group_ids: [],
-    password: "",
-    password_confirmation: "",
-    sts: "aktif",
-    approval: "approved"
-};
+import { createInitialUserForm } from "../../utils/userForm";
 
 export default function UserFormModal({
     open,
@@ -35,39 +22,16 @@ export default function UserFormModal({
         [currentUser]
     );
 
-    const [form, setForm] = useState(emptyForm);
-    const [localErrors, setLocalErrors] = useState({});
-
     const isEdit = mode === "edit";
 
-    useEffect(() => {
-        if (!open) return;
-
-        if (isEdit && user) {
-            setForm({
-                role: user.role ?? manageableRoles[0] ?? "user",
-                nik: user.nik ?? "",
-                nama: user.nama ?? "",
-                instansi: user.instansi ?? "",
-                jabatan: user.jabatan ?? "",
-                telp: user.telp ?? "",
-                group_ids: (user.groups ?? []).map((group) => Number(group.id)),
-                password: "",
-                password_confirmation: "",
-                sts: user.sts ?? "aktif",
-                approval: user.approval ?? "approved"
-            });
-        } else {
-            setForm({
-                ...emptyForm,
-                role: manageableRoles.includes("user")
-                    ? "user"
-                    : manageableRoles[0] ?? "user"
-            });
-        }
-
-        setLocalErrors({});
-    }, [open, isEdit, user, manageableRoles]);
+    const [form, setForm] = useState(() =>
+        createInitialUserForm(
+            user,
+            isEdit,
+            manageableRoles
+        )
+    );
+    const [localErrors, setLocalErrors] = useState({});
 
     function updateField(name, value) {
         setForm((previous) => ({

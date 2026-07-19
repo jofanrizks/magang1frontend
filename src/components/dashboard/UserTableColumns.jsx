@@ -23,7 +23,7 @@ import {
 } from "../../utils/userPermissions";
 import { formatUserGroups } from "../../utils/groups";
 
-export default function userTableColumns({
+export default function UserTableColumns({
     currentUser,
     onDetail,
     onEdit,

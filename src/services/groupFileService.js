@@ -2,7 +2,8 @@ import api from "../api/axios";
 
 export const getGroupFiles = (
     page = 1,
-    groupId = null
+    groupId = null,
+    serviceOptionId = null
 ) => {
     const params = {
         page
@@ -10,6 +11,10 @@ export const getGroupFiles = (
 
     if (groupId) {
         params.group_id = groupId;
+    }
+
+    if (serviceOptionId) {
+        params.service_option_id = serviceOptionId;
     }
 
     return api.get("/group-files", {
@@ -32,6 +37,7 @@ export const deleteGroupFile = (id) => {
 
 export const uploadAdminGroupFile = (
     groupId,
+    serviceOptionId,
     file
 ) => {
     const formData = new FormData();
@@ -39,6 +45,11 @@ export const uploadAdminGroupFile = (
     formData.append(
         "group_id",
         groupId
+    );
+
+    formData.append(
+        "service_option_id",
+        serviceOptionId
     );
 
     formData.append(
@@ -60,12 +71,14 @@ export const deleteAdminGroupFile = (id) => {
 
 export const moveAdminGroupFile = (
     id,
-    groupId
+    groupId,
+    serviceOptionId
 ) => {
     return api.patch(
         `/admin/group-files/${id}/move`,
         {
-            group_id: groupId
+            group_id: groupId,
+            service_option_id: serviceOptionId
         }
     );
 };

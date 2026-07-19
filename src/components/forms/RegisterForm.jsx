@@ -27,26 +27,38 @@ export default function RegisterForm() {
     });
 
     useEffect(() => {
-        fetchGroups();
-    }, []);
+        let ignore = false;
 
-    async function fetchGroups() {
-        try {
-            const response = await api.get("/groups");
+        async function loadGroups() {
+            try {
+                const response = await api.get("/groups");
 
-            setGroups(response.data?.data || []);
-        } catch (err) {
-            Swal.fire({
-                icon: "error",
-                title: "Gagal Mengambil Group",
-                text:
-                    err.response?.data?.message ||
-                    "Daftar group tidak dapat dimuat"
-            });
-        } finally {
-            setLoadingGroups(false);
+                if (!ignore) {
+                    setGroups(response.data?.data || []);
+                }
+            } catch (err) {
+                if (!ignore) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal Mengambil Group",
+                        text:
+                            err.response?.data?.message ||
+                            "Daftar group tidak dapat dimuat"
+                    });
+                }
+            } finally {
+                if (!ignore) {
+                    setLoadingGroups(false);
+                }
+            }
         }
-    }
+
+        void loadGroups();
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
 
     function handleChange(e) {
         const { name, value } = e.target;

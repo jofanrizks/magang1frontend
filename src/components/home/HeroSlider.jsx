@@ -9,25 +9,33 @@ export default function HeroSlider({
     const [banners, setBanners] = useState([]);
     const [current, setCurrent] = useState(0);
 
-    async function fetchBanners() {
-        try {
-            const response = await getBanners();
-            const bannerData = response.data?.data ?? [];
-
-            setBanners(
-                bannerData.map((banner) => ({
-                    image: `${API_ORIGIN}/storage/${banner.image}`,
-                    title: banner.title,
-                    description: banner.description,
-                }))
-            );
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
     useEffect(() => {
-        fetchBanners();
+        let ignore = false;
+
+        async function loadBanners() {
+            try {
+                const response = await getBanners();
+                const bannerData = response.data?.data ?? [];
+
+                if (!ignore) {
+                    setBanners(
+                        bannerData.map((banner) => ({
+                            image: `${API_ORIGIN}/storage/${banner.image}`,
+                            title: banner.title,
+                            description: banner.description,
+                        }))
+                    );
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        void loadBanners();
+
+        return () => {
+            ignore = true;
+        };
     }, []);
 
     // Auto slider

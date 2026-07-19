@@ -8,25 +8,33 @@ export default function ApprovedUser() {
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
-        getUsers();
-    }, []);
+        let ignore = false;
 
-    async function getUsers() {
+        async function loadUsers() {
 
-        try {
+            try {
 
-            const res = await getApprovedUsers();
-            const payload = res.data.data;
+                const res = await getApprovedUsers();
+                const payload = res.data.data;
 
-            setUsers(payload.data ?? payload);
+                if (!ignore) {
+                    setUsers(payload.data ?? payload);
+                }
 
-        } catch (err) {
+            } catch (err) {
 
-            console.log(err);
+                console.log(err);
+
+            }
 
         }
 
-    }
+        void loadUsers();
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
 
     const columns = [
 

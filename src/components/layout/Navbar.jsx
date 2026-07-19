@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Menu,
@@ -51,7 +51,9 @@ export default function Navbar() {
 
             await logoutApi();
 
-        } catch (e) {}
+        } catch (error) {
+            console.error("Logout request failed.", error);
+        }
 
         localStorage.removeItem("token");
         localStorage.removeItem("user");

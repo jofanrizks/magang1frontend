@@ -325,32 +325,76 @@ export default function UserDetailModal({
                                                 }
                                                 className="border-b border-slate-100 px-5 py-4 last:border-b-0"
                                             >
-                                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                                    <div>
+                                                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                                                    <div className="min-w-0 flex-1">
                                                         <p className="font-semibold text-slate-800">
-                                                            {
+                                                            {formatValue(
                                                                 log.activity
-                                                            }
+                                                            )}
                                                         </p>
 
-                                                        <p className="mt-1 text-sm text-slate-600">
-                                                            {
+                                                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                                                            {formatValue(
                                                                 log.description
-                                                            }
+                                                            )}
                                                         </p>
 
-                                                        <p className="mt-2 text-xs text-slate-400">
-                                                            IP:{" "}
-                                                            {log.ip_address ??
-                                                                "-"}
-                                                        </p>
+                                                        <div className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+                                                            <LogMetaItem
+                                                                label="Pelaku"
+                                                                value={formatActor(
+                                                                    log.actor
+                                                                )}
+                                                            />
+
+                                                            <LogMetaItem
+                                                                label="IP Address"
+                                                                value={
+                                                                    log.ip_address
+                                                                }
+                                                            />
+
+                                                            <LogMetaItem
+                                                                label="Browser"
+                                                                value={
+                                                                    log.browser
+                                                                }
+                                                            />
+
+                                                            <LogMetaItem
+                                                                label="Sistem Operasi"
+                                                                value={
+                                                                    log.operating_system
+                                                                }
+                                                            />
+
+                                                            <LogMetaItem
+                                                                label="Perangkat"
+                                                                value={
+                                                                    log.device_type
+                                                                }
+                                                            />
+
+                                                            <LogMetaItem
+                                                                label="Waktu"
+                                                                value={formatDateTime(
+                                                                    log.created_at
+                                                                )}
+                                                            />
+                                                        </div>
+
+                                                        <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+                                                            <summary className="cursor-pointer font-semibold text-slate-700">
+                                                                Lihat User-Agent
+                                                            </summary>
+
+                                                            <p className="mt-3 break-all leading-5">
+                                                                {formatValue(
+                                                                    log.user_agent
+                                                                )}
+                                                            </p>
+                                                        </details>
                                                     </div>
-
-                                                    <span className="whitespace-nowrap text-xs font-medium text-slate-500">
-                                                        {formatDateTime(
-                                                            log.created_at
-                                                        )}
-                                                    </span>
                                                 </div>
                                             </div>
                                         )
@@ -591,6 +635,23 @@ function StatusItem({
     );
 }
 
+function LogMetaItem({
+    label,
+    value
+}) {
+    return (
+        <div>
+            <p className="font-medium text-slate-400">
+                {label}
+            </p>
+
+            <p className="mt-1 break-words font-semibold text-slate-700">
+                {formatValue(value)}
+            </p>
+        </div>
+    );
+}
+
 function FooterButton({
     children,
     className = "",
@@ -690,18 +751,46 @@ function approvalLabel(approval) {
 }
 
 function formatDateTime(value) {
-    return value
-        ? new Date(value).toLocaleString(
-              "id-ID",
-              {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit"
-              }
-          )
-        : "-";
+    if (!value) {
+        return "-";
+    }
+
+    const formatted = new Intl.DateTimeFormat(
+        "id-ID",
+        {
+            timeZone: "Asia/Jakarta",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    ).format(new Date(value));
+
+    return formatted.includes("WIB")
+        ? formatted
+        : `${formatted} WIB`;
+}
+
+function formatValue(value) {
+    if (value === null || value === undefined || value === "") {
+        return "-";
+    }
+
+    return value;
+}
+
+function formatActor(actor) {
+    if (!actor) {
+        return "-";
+    }
+
+    const name = actor.nama ?? "-";
+    const role = formatRole(actor.role);
+
+    return role === "-"
+        ? name
+        : `${name} (${role})`;
 }
 
 function isLoading(

@@ -14,7 +14,8 @@ import { getUserGroupIds } from "../../utils/groups";
 export default function ServiceAccordion({
     menus,
     currentUser,
-    loadingUser = false
+    loadingUser = false,
+    serviceError = ""
 }) {
     const navigate = useNavigate();
 
@@ -22,7 +23,7 @@ export default function ServiceAccordion({
 
     const userGroupIds = getUserGroupIds(currentUser);
 
-    function canAccessService(serviceNumber) {
+    function canAccessService(service) {
         if (!currentUser) {
             return false;
         }
@@ -32,15 +33,15 @@ export default function ServiceAccordion({
         }
 
         if (currentUser.role === "user") {
-            return userGroupIds.includes(Number(serviceNumber));
+            return userGroupIds.includes(
+                Number(service?.group?.id)
+            );
         }
 
         return false;
     }
 
     function toggleMenu(index) {
-        const serviceNumber = index + 1;
-
         if (loadingUser) {
             return;
         }
@@ -53,7 +54,7 @@ export default function ServiceAccordion({
             return;
         }
 
-        if (!canAccessService(serviceNumber)) {
+        if (!canAccessService(menus[index])) {
             return;
         }
 
@@ -113,10 +114,11 @@ export default function ServiceAccordion({
                 "
             >
                 {menus.map((menu, index) => {
-                    const serviceNumber = index + 1;
+                    const groupId = Number(menu.group?.id);
+                    const options = menu.options ?? [];
 
                     const isActiveService =
-                        canAccessService(serviceNumber);
+                        canAccessService(menu);
 
                     const isLocked =
                         !loadingUser &&
@@ -124,7 +126,7 @@ export default function ServiceAccordion({
 
                     return (
                         <div
-                            key={menu.title ?? index}
+                            key={menu.id ?? index}
                             className={`
                                 bg-white
                                 rounded-3xl
@@ -169,7 +171,7 @@ export default function ServiceAccordion({
                                 `}
                             >
                                 <span>
-                                    {menu.title}
+                                    {menu.name}
                                 </span>
 
                                 {loadingUser ? (
@@ -218,17 +220,21 @@ export default function ServiceAccordion({
                                 `}
                             >
                                 <div className="border-t border-slate-100">
-                                    {menu.items.map((item) => (
+                                    {options.map((item) => (
                                         <Link
                                             key={item.id}
-                                            to={`/group-files?group_id=${serviceNumber}`}
+                                            to={`/group-files?group_id=${groupId}&option_id=${item.id}`}
                                             state={{
                                                 groupId:
-                                                    serviceNumber,
+                                                    groupId,
                                                 groupName:
-                                                    `group-${serviceNumber}`,
+                                                    menu.group?.name,
                                                 serviceName:
-                                                    menu.title
+                                                    menu.name,
+                                                optionId:
+                                                    item.id,
+                                                optionName:
+                                                    item.name
                                             }}
                                             className="
                                                 flex
@@ -260,11 +266,25 @@ export default function ServiceAccordion({
                                             />
                                         </Link>
                                     ))}
+
+                                    {options.length === 0 && (
+                                        <div className="px-6 py-4 text-sm text-slate-500">
+                                            Belum ada opsi aktif.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     );
                 })}
+
+                {!loadingUser &&
+                    menus.length === 0 && (
+                        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-8 text-slate-500 shadow-sm lg:col-span-5">
+                            {serviceError ||
+                                "Login untuk melihat layanan yang tersedia."}
+                        </div>
+                    )}
             </div>
         </section>
     );

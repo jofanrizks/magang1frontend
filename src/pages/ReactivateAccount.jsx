@@ -12,13 +12,18 @@ import {
 function formatDate(date) {
     if (!date) return "-";
 
-    return new Intl.DateTimeFormat("id-ID", {
+    const formatted = new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
         day: "2-digit",
         month: "long",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit"
     }).format(new Date(date));
+
+    return formatted.includes("WIB")
+        ? formatted
+        : `${formatted} WIB`;
 }
 
 function ActivityLog({ logs }) {
@@ -47,23 +52,105 @@ function ActivityLog({ logs }) {
                         {log.activity || "-"}
                     </p>
 
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className="mt-1 text-sm text-slate-600">
                         {log.description || "-"}
                     </p>
 
-                    <div className="mt-3 text-xs text-slate-500 space-y-1">
-                        <p>{formatDate(log.created_at)}</p>
+                    <div
+                        className="
+                            mt-4
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-2
+                            gap-3
+                            text-sm
+                        "
+                    >
+                        <div>
+                            <p className="text-xs text-slate-400">
+                                IP Address
+                            </p>
 
-                        {log.ip_address && (
-                            <p>IP: {log.ip_address}</p>
-                        )}
+                            <p className="font-medium text-slate-700">
+                                {log.ip_address || "-"}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-slate-400">
+                                Browser
+                            </p>
+
+                            <p className="font-medium text-slate-700">
+                                {log.browser || "-"}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-slate-400">
+                                Perangkat
+                            </p>
+
+                            <p className="font-medium text-slate-700">
+                                {log.device_type || "-"}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-slate-400">
+                                Sistem Operasi
+                            </p>
+
+                            <p className="font-medium text-slate-700">
+                                {log.operating_system || "-"}
+                            </p>
+                        </div>
                     </div>
+
+                    <div className="mt-4">
+                        <details
+                            className="
+                                rounded-lg
+                                border
+                                border-slate-200
+                                bg-white
+                                px-3
+                                py-2
+                            "
+                        >
+                            <summary
+                                className="
+                                    cursor-pointer
+                                    text-xs
+                                    font-medium
+                                    text-slate-600
+                                "
+                            >
+                                Lihat User-Agent
+                            </summary>
+
+                            <p
+                                className="
+                                    mt-2
+                                    break-all
+                                    text-xs
+                                    leading-relaxed
+                                    text-slate-500
+                                "
+                            >
+                                {log.user_agent || "-"}
+                            </p>
+                        </details>
+                    </div>
+
+                    <p className="mt-3 text-xs text-slate-500">
+                        {formatDate(log.created_at)}
+                    </p>
                 </div>
             ))}
         </div>
     );
 }
-
 export default function ReactivateAccount() {
 
     const navigate = useNavigate();

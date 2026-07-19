@@ -3,105 +3,79 @@ import Navbar from "../components/layout/Navbar";
 import HeroSlider from "../components/home/HeroSlider";
 import ServiceAccordion from "../components/home/ServiceAccordion";
 import Footer from "../components/home/Footer";
-import { me } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { getServices } from "../services/serviceService";
+
+function storedUser() {
+    try {
+        return JSON.parse(localStorage.getItem("user"));
+    } catch (error) {
+        console.error("Stored user data is invalid.", error);
+        return null;
+    }
+}
 
 export default function Home() {
 
     const primaryColor = "#2563eb";
     const navigate = useNavigate();
 
-    const [currentUser, setCurrentUser] = useState(null);
-    const [loadingUser, setLoadingUser] = useState(false);
+    const [currentUser, setCurrentUser] = useState(storedUser);
+    const loadingUser = false;
+    const [menus, setMenus] = useState([]);
+    const [loadingServices, setLoadingServices] = useState(false);
+    const [serviceError, setServiceError] = useState("");
+
+    useEffect(() => {
+        const mustChangePassword =
+            currentUser?.must_change_password === true ||
+            currentUser?.must_change_password === 1 ||
+            currentUser?.must_change_password === "1";
+
+        if (mustChangePassword) {
+            navigate("/change-password-required", {
+                replace: true
+            });
+        }
+    }, [
+        currentUser,
+        navigate
+    ]);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
 
-        if (!token) return;
+        if (!token) {
+            return;
+        }
 
-        async function fetchUser() {
-            setLoadingUser(true);
+        async function fetchServices() {
+            setLoadingServices(true);
+            setServiceError("");
 
             try {
-                const response = await me();
-                const user = response.data.data ?? response.data.user;
+                const response = await getServices();
 
-                setCurrentUser(user);
-
-                if (user) {
-                    localStorage.setItem("user", JSON.stringify(user));
-
-                    const mustChangePassword =
-                        user.must_change_password === true ||
-                        user.must_change_password === 1 ||
-                        user.must_change_password === "1";
-
-                    if (mustChangePassword) {
-                        navigate("/change-password-required", {
-                            replace: true
-                        });
-                    }
-                }
+                setMenus(response.data.data ?? []);
             } catch (err) {
                 if (err.response?.status === 401) {
                     localStorage.removeItem("token");
                     localStorage.removeItem("user");
+                    setCurrentUser(null);
                 }
+
+                setMenus([]);
+                setServiceError(
+                    err.response?.data?.message ??
+                        "Gagal mengambil layanan."
+                );
             } finally {
-                setLoadingUser(false);
+                setLoadingServices(false);
             }
         }
 
-        fetchUser();
-    }, [navigate]);
-
-    const menus = [
-        {
-            title: "Layanan 1",
-            items: [
-                { id: 1, name: "Menu 1", path: "/menu/1" },
-                { id: 2, name: "Menu 2", path: "/menu/2" },
-                { id: 3, name: "Menu 3", path: "/menu/3" },
-                { id: 4, name: "Menu 4", path: "/menu/4" }
-            ]
-        },
-        {
-            title: "Layanan 2",
-            items: [
-                { id: 5, name: "Menu 5", path: "/menu/5" },
-                { id: 6, name: "Menu 6", path: "/menu/6" },
-                { id: 7, name: "Menu 7", path: "/menu/7" },
-                { id: 8, name: "Menu 8", path: "/menu/8" }
-            ]
-        },
-        {
-            title: "Layanan 3",
-            items: [
-                { id: 9, name: "Menu 9", path: "/menu/9" },
-                { id: 10, name: "Menu 10", path: "/menu/10" },
-                { id: 11, name: "Menu 11", path: "/menu/11" },
-                { id: 12, name: "Menu 12", path: "/menu/12" }
-            ]
-        },
-        {
-            title: "Layanan 4",
-            items: [
-                { id: 13, name: "Menu 13", path: "/menu/13" },
-                { id: 14, name: "Menu 14", path: "/menu/14" },
-                { id: 15, name: "Menu 15", path: "/menu/15" },
-                { id: 16, name: "Menu 16", path: "/menu/16" }
-            ]
-        },
-        {
-            title: "Layanan 5",
-            items: [
-                { id: 17, name: "Menu 17", path: "/menu/17" },
-                { id: 18, name: "Menu 18", path: "/menu/18" },
-                { id: 19, name: "Menu 19", path: "/menu/19" },
-                { id: 20, name: "Menu 20", path: "/menu/20" }
-            ]
-        }
-    ];
+        fetchServices();
+    }, [currentUser?.id]);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
@@ -112,7 +86,8 @@ export default function Home() {
             <ServiceAccordion
                 menus={menus}
                 currentUser={currentUser}
-                loadingUser={loadingUser}
+                loadingUser={loadingUser || loadingServices}
+                serviceError={serviceError}
             />
 
             <Footer />

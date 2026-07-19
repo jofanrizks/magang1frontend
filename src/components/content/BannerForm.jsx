@@ -3,7 +3,6 @@ import {
     ImagePlus,
     Upload,
     X,
-    Image,
 } from "lucide-react";
 
 import { uploadBanner } from "../../services/bannerService";

@@ -66,7 +66,7 @@ export default function Sidebar() {
         },
         {
             name: "Pengaturan Banner",
-            path: "/banner-settings",
+            path: "/setting",
             icon: Settings,
             roles: [
                 "admin",

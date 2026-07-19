@@ -1,61 +1,36 @@
-import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { me } from "../services/authService";
 
 export default function ProtectedRoute({
     children,
     role,
     roles
 }) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
     const token =
         localStorage.getItem("token");
+
+    let user = null;
+
+    if (token) {
+        try {
+            user = JSON.parse(
+                localStorage.getItem("user")
+            );
+        } catch (error) {
+            console.error("Stored user data is invalid.", error);
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+        }
+    }
 
     const allowedRoles =
         roles ?? (role ? [role] : []);
 
-    useEffect(() => {
-        if (!token) {
-            setLoading(false);
-            return;
-        }
-
-        async function fetchUser() {
-            try {
-                const response = await me();
-                const currentUser =
-                    response.data.data ?? response.data.user;
-
-                setUser(currentUser);
-
-                if (currentUser) {
-                    localStorage.setItem(
-                        "user",
-                        JSON.stringify(currentUser)
-                    );
-                }
-            } catch (err) {
-                if (err.response?.status === 401) {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
-                }
-
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchUser();
-    }, [token]);
-
-    if (loading) {
+    if (!token) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-slate-500">
-                Memeriksa akses...
-            </div>
+            <Navigate
+                to="/login"
+                replace
+            />
         );
     }
 
