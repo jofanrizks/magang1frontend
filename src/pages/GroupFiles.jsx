@@ -140,13 +140,15 @@ export default function GroupFiles() {
         }
 
         const activeGroupId =
-            isAdmin ? selectedGroupId : requestedGroupId;
+            isAdmin || isUser
+                ? selectedGroupId
+                : requestedGroupId;
 
         if (activeGroupId) {
             return `Group: group-${activeGroupId}`;
         }
 
-        if (isAdmin) {
+        if (isAdmin || isUser) {
             return "Semua group";
         }
 
@@ -155,7 +157,8 @@ export default function GroupFiles() {
         group,
         requestedGroupId,
         selectedGroupId,
-        isAdmin
+        isAdmin,
+        isUser
     ]);
 
     const serviceName = useMemo(() => {
@@ -170,8 +173,7 @@ export default function GroupFiles() {
         */
 
         const serviceNumber =
-            (isAdmin ? selectedGroupId : requestedGroupId) ??
-            currentUser?.group_id ??
+            (isAdmin || isUser ? selectedGroupId : requestedGroupId) ??
             group?.id;
 
         if (!serviceNumber) {
@@ -183,7 +185,7 @@ export default function GroupFiles() {
         requestedGroupId,
         selectedGroupId,
         isAdmin,
-        currentUser?.group_id,
+        isUser,
         group?.id
     ]);
 
@@ -253,12 +255,13 @@ export default function GroupFiles() {
                 | GET /group-files?page=1&group_id=2
                 |
                 | Untuk User:
-                | Backend tetap menggunakan group_id user login.
+                | Backend menggunakan group_id request jika dipilih,
+                | atau seluruh group milik user jika kosong.
                 |
                 */
 
                 const groupId =
-                    isAdmin ? selectedGroupId : requestedGroupId;
+                    isAdmin || isUser ? selectedGroupId : requestedGroupId;
 
                 const response = await getGroupFiles(page, groupId);
 
@@ -295,7 +298,8 @@ export default function GroupFiles() {
             handleUnauthorized,
             requestedGroupId,
             selectedGroupId,
-            isAdmin
+            isAdmin,
+            isUser
         ]
     );
 
@@ -334,7 +338,7 @@ export default function GroupFiles() {
             return;
         }
 
-        if (isAdmin && !selectedGroupId) {
+        if ((isAdmin || isUser) && !selectedGroupId) {
             Swal.fire({
                 icon: "warning",
                 title: "Pilih group",
@@ -406,6 +410,13 @@ export default function GroupFiles() {
             "file",
             selectedFile
         );
+
+        if (isUser) {
+            formData.append(
+                "group_id",
+                selectedGroupId
+            );
+        }
 
         setUploading(true);
 
@@ -610,7 +621,7 @@ export default function GroupFiles() {
                         </div>
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            {isAdmin && (
+                            {(isAdmin || isUser) && (
                                 <select
                                     value={selectedGroupId}
                                     onChange={(event) => {
@@ -623,7 +634,9 @@ export default function GroupFiles() {
                                     }}
                                     className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    <option value="">Semua group</option>
+                                    <option value="">
+                                        {isUser ? "Semua group saya" : "Semua group"}
+                                    </option>
                                     {groups.map((item) => (
                                         <option
                                             key={item.id}
@@ -944,10 +957,8 @@ export default function GroupFiles() {
                                     }
                                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    <ChevronLeft
-                                        size={18}
-                                    />
-                                    Sebelumnya
+                                    
+                                    Prev
                                 </button>
 
                                 <button
@@ -963,10 +974,8 @@ export default function GroupFiles() {
                                     }
                                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    Berikutnya
-                                    <ChevronRight
-                                        size={18}
-                                    />
+                                    Next
+                                    
                                 </button>
                             </div>
                         </div>

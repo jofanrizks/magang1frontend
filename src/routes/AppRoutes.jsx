@@ -72,6 +72,10 @@ export default function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
+                <Route 
+                    path="/profile"
+                    element={<Profile />}
+                />
 
                 {/* User */}
 
@@ -94,13 +98,6 @@ export default function AppRoutes() {
                     }
                 />
 
-                <Route
-                        path="/setting"
-                        element={
-                            <Setting />
-                        }
-                    />
-
                 <Route 
                     path="/profile"
                     element={<Profile />}
@@ -110,7 +107,7 @@ export default function AppRoutes() {
                     path="/group-files"
                     element={
                         <ProtectedRoute>
-                            <Profile />
+                            <GroupFiles />
                         </ProtectedRoute>
                     }
                 />
@@ -120,7 +117,7 @@ export default function AppRoutes() {
                 <Route
                     element={
                         <ProtectedRoute
-                            role={["super_admin", "admin"]}
+                            roles={["super_admin", "admin"]}
                         >
                             <MainLayout />
                         </ProtectedRoute>
@@ -149,6 +146,12 @@ export default function AppRoutes() {
                         element={
                             <ManageServices />
                         }
+                    />
+                    <Route
+                        path="/setting"
+                        element={
+                            <Setting />
+                    }
                     />
                 
                 </Route>

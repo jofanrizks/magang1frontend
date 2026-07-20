@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import useThrottledCallback from "../../hooks/useThrottledCallback";
 
+import { History } from "lucide-react";
+
 export default function ActivityLog({ logs = [], userId, fetchPage }) {
     console.log("logs di ActivityLog", logs);
     const [loadedLogs, setLoadedLogs] = useState(logs);
@@ -48,33 +50,46 @@ export default function ActivityLog({ logs = [], userId, fetchPage }) {
     }
 
     return (
-        <div className="p-8">
-            <div className="mb-4 border-b-2 border-slate-200 pb-3">
-                <h2 className="text-xl font-bold">Riwayat Aktivitas</h2>
-            </div>
+    <div>
+        <div className="border-b border-slate-200 px-5 py-4">
+            <div className="flex items-center gap-2 text-slate-800">
+                <span className="text-blue-600">
+                    <History size={19} />
+                </span>
 
+                    <h3 className="font-semibold">
+                        Riwayat Aktivitas
+                    </h3>
+            </div>
+        </div>
+
+        <div
+            onScroll={handleScroll}
+            className="max-h-120 overflow-y-auto"
+        >
             {loadedLogs.length > 0 ? (
-                <div
-                    onScroll={handleScroll}
-                    className="space-y-4 max-h-144 overflow-y-auto pr-2"
-                >
+                <>
                     {loadedLogs.map((log) => (
                         <div
                             key={log.id}
-                            className="border-b border-slate-200 p-5 transition"
+                            className="border-b border-slate-100 px-5 py-4 last:border-b-0"
                         >
-                            <div className="flex justify-between items-start">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
-                                    <h3 className="font-semibold text-slate-800">
+                                    <p className="font-semibold text-slate-800">
                                         {log.activity}
-                                    </h3>
+                                    </p>
 
-                                    <p className="mt-1 text-sm text-slate-500">
+                                    <p className="mt-1 text-sm text-slate-600">
                                         {log.description}
+                                    </p>
+
+                                    <p className="mt-2 text-xs text-slate-400">
+                                        IP: {log.ip_address ?? "-"}
                                     </p>
                                 </div>
 
-                                <span className="whitespace-nowrap text-xs text-slate-400">
+                                <span className="whitespace-nowrap text-xs font-medium text-slate-500">
                                     {new Date(log.created_at).toLocaleString(
                                         "id-ID",
                                         {
@@ -87,26 +102,21 @@ export default function ActivityLog({ logs = [], userId, fetchPage }) {
                                     )}
                                 </span>
                             </div>
-
-                            {log.ip_address && (
-                                <div className="mt-3 text-xs text-slate-400">
-                                    IP Address: {log.ip_address}
-                                </div>
-                            )}
                         </div>
                     ))}
 
                     {isLoading && (
-                        <p className="py-2 text-center text-sm text-slate-400">
+                        <div className="px-6 py-4 text-center text-sm text-slate-400">
                             Memuat riwayat...
-                        </p>
+                        </div>
                     )}
-                </div>
+                </>
             ) : (
-                <div className="py-10 text-center text-slate-400">
+                <div className="px-6 py-12 text-center text-sm text-slate-400">
                     Belum ada riwayat aktivitas.
                 </div>
             )}
         </div>
+    </div>
     );
 }

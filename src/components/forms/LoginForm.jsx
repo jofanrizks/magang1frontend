@@ -20,7 +20,7 @@ export default function LoginForm() {
             const res = await login(form);
             const payload = res.data.data;
             const user = payload.user;
-            
+
             localStorage.setItem(
                 "token",
                 payload.token
@@ -46,8 +46,8 @@ export default function LoginForm() {
                     allowEscapeKey: false
                 });
 
-                navigate("/forgot-password", {
-                    replace: true,
+                navigate("/change-password-required", {
+                    replace: true
                 });
 
                 return;
@@ -66,7 +66,8 @@ export default function LoginForm() {
             }
         } catch (err) {
             if (
-                err.response?.data?.code === "ACCOUNT_DISABLED"
+                err.response?.data?.code ===
+                "ACCOUNT_DISABLED"
             ) {
                 localStorage.setItem(
                     "reactivate_nik",
@@ -90,36 +91,37 @@ export default function LoginForm() {
             }
 
             if (
-                err.response?.data?.code === "ACCOUNT_NOT_ACTIVATED"
+                err.response?.data?.code ===
+                "ACCOUNT_NOT_ACTIVATED"
             ) {
                 localStorage.setItem(
                     "nik",
                     form.nik
                 );
 
-            await Swal.fire({
-                icon: "info",
-                title: "Aktivasi Diperlukan",
-                text:
-                    err.response?.data?.message ||
-                    "Silahkan Aktivasi akun menggunakan OTP",
-                confirmButtonText: "Aktivasi"
-            });
+                await Swal.fire({
+                    icon: "info",
+                    title: "Aktivasi Diperlukan",
+                    text:
+                        err.response?.data?.message ||
+                        "Silakan aktivasi akun menggunakan OTP.",
+                    confirmButtonText: "Aktivasi"
+                });
 
-            navigate("/otp", {
-                replace: true
-            });
+                navigate("/otp", {
+                    replace: true
+                });
 
-            return;
+                return;
             }
 
             await Swal.fire({
                 icon: "error",
-                title: "Gagal",
+                title: "Login Gagal",
                 text:
                     err.response?.data?.message ||
-                    "NIK atau password tidak valid"
-            })
+                    "NIK atau password tidak valid."
+            });
         }
     }
 

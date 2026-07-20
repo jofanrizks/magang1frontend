@@ -3,23 +3,35 @@ import { useNavigate } from "react-router-dom";
 import { me } from "../services/authService";
 
 import {
-    ArrowLeft,
-    Building2,
-    Briefcase,
-    Phone,
-    IdCard,
-    Calendar,
-    Shield,
     BadgeCheck,
     Ban,
+    Briefcase,
+    Building2,
+    CalendarDays,
+    CheckCircle2,
+    Edit,
+    History,
+    IdCard,
+    KeyRound,
+    Phone,
+    Send,
+    Shield,
+    Trash2,
     User,
+    Users,
+    X,
+    XCircle,
+    ArrowLeft
 } from "lucide-react";
 
 import Badge from "../components/ui/Badge";
 import ActivityLog from "../components/dashboard/ActivityLog";
 import useDisableAccount from "../hooks/useDisableAccount";
+import { formatUserGroups } from "../utils/groups";
 
-export default function Profile() {
+export default function Profile({
+    fetchActivityLogs
+}) {   
 
     const navigate = useNavigate();
 
@@ -104,7 +116,7 @@ export default function Profile() {
                     <div>
 
                         <h1 className="text-4xl font-bold text-slate-800">
-                            Profil
+                            {user.nama}
                         </h1>
 
                         <p className="text-slate-500 mt-2">
@@ -118,154 +130,224 @@ export default function Profile() {
 
                 {/* Profile */}
 
-                <div 
-                    className="
-                        bg-white
-                        rounded-3xl
-                        border
-                        border-slate-200
-                        shadow-sm
-                        overflow-hidden
-                        mb-8
-                    "
-                >
-
-                    <div className="h-24"/>
-
-                    <div className="px-8 pb-8">
-
-                        <div className="-mt-14 flex items-end gap-6">
-
-                            <div
-                                className="
-                                    w-20
-                                    h-20
-                                    rounded-full
-                                    bg-white
-                                    shadow-xl
-                                    border-4
-                                    border-white
-                                    flex
-                                    items-center
-                                    justify-center
-                                "
-                            >
-                                <User
-                                                                    
-                                ></User>
-
-                            </div>
-
-                            <div className="pb-3">
-
-                                <h2 className="text-3xl font-bold">
-
-                                    {user.nama}
-
-                                </h2>
-
-                                <p className="text-slate-500">
-
-                                    {user.jabatan}
-
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
-
-                        <Info
-                                icon={<User size={18}/>}
-                                title="Nama"
-                                value={user.nama}
-                            />
-
-                            <Info
-                                icon={<IdCard size={18}/>}
-                                title="NIK"
-                                value={user.nik}
-                            />
-
-                            <Info
-                                icon={<Building2 size={18}/>}
-                                title="Instansi"
-                                value={user.instansi}
-                            />
-
-                            <Info
-                                icon={<Briefcase size={18}/>}
-                                title="Jabatan"
-                                value={user.jabatan}
-                            />
-
-                            <Info
-                                icon={<Phone size={18}/>}
-                                title="Nomor HP"
-                                value={user.telp}
-                            />
-
-                            <Info
-                                icon={<Calendar size={18}/>}
-                                title="Tanggal Daftar"
-                                value={
-                                    user.tgldaftar
-                                        ? new Date(user.tgldaftar).toLocaleDateString("id-ID", {
-                                            day: "2-digit",
-                                            month: "long",
-                                            year: "numeric",
-                                        })
-                                        : "-"
-                                }
-                            />
-
-                            <Info
-                                icon={<Shield size={18}/>}
-                                title={"Status"}
-                            >
-
-                                <Badge
-                                    color={user.sts === "aktif" ? "green" : "red"}
-                                >
-                                    {user.sts}
-                                </Badge>
-                            </Info>
-
-                            <Info
-                                icon={<BadgeCheck size={18}/>}
-                                title={"Approval"}
-                            >
-                                
-                                <Badge
-                                    color={user.approval === "approved" ? "green" : "yellow"}
-                                >
-                                    {user.approval}
-                                </Badge>
-                            </Info>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                {/* Activity */}
-
-                <div 
-                    className="
-                    bg-white
-                    rounded-3xl
-                    border
-                    border-slate-200
-                    shadow-sm 
-                    mb-8">
-
-                    <ActivityLog
-                        logs={user.activity_logs ?? []}
-                    />
-
-                </div>
+                <div className="flex-1 overflow-y-auto bg-slate-50/70 ">
+                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                                        {/* Informasi utama */}
+                
+                                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+                                            <SectionTitle
+                                                icon={<User size={19} />}
+                                                title="Informasi Pengguna"
+                                            />
+                
+                                            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                                <InfoItem
+                                                    icon={<IdCard size={18} />}
+                                                    label="NIK"
+                                                    value={user.nik}
+                                                />
+                
+                                                <InfoItem
+                                                    icon={<Shield size={18} />}
+                                                    label="Role"
+                                                    value={formatRole(user.role)}
+                                                />
+                
+                                                <InfoItem
+                                                    icon={<Building2 size={18} />}
+                                                    label="Instansi"
+                                                    value={user.instansi}
+                                                />
+                
+                                                <InfoItem
+                                                    icon={<Briefcase size={18} />}
+                                                    label="Jabatan"
+                                                    value={user.jabatan}
+                                                />
+                
+                                                <InfoItem
+                                                    icon={<Phone size={18} />}
+                                                    label="Nomor Telepon"
+                                                    value={user.telp}
+                                                />
+                
+                                                {user.role === "user" && (
+                                                    <InfoItem
+                                                        icon={<Users size={18} />}
+                                                        label="Group"
+                                                        value={formatUserGroups(user)}
+                                                    />
+                                                )}
+                                            </div>
+                                        </section>
+                
+                                        {/* Status akun */}
+                
+                                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                            <SectionTitle
+                                                icon={<Shield size={19} />}
+                                                title="Status Akun"
+                                            />
+                
+                                            <div className="mt-5 space-y-5">
+                                                <StatusItem
+                                                    icon={<Shield size={17} />}
+                                                    label="Status"
+                                                >
+                                                    <Badge
+                                                        color={statusColor(
+                                                            user.sts
+                                                        )}
+                                                    >
+                                                        {statusLabel(
+                                                            user.sts
+                                                        )}
+                                                    </Badge>
+                                                </StatusItem>
+                
+                                                <StatusItem
+                                                    icon={
+                                                        <BadgeCheck
+                                                            size={17}
+                                                        />
+                                                    }
+                                                    label="Approval"
+                                                >
+                                                    <Badge
+                                                        color={approvalColor(
+                                                            user.approval
+                                                        )}
+                                                    >
+                                                        {approvalLabel(
+                                                            user.approval
+                                                        )}
+                                                    </Badge>
+                                                </StatusItem>
+                
+                                                <StatusItem
+                                                    icon={
+                                                        <KeyRound
+                                                            size={17}
+                                                        />
+                                                    }
+                                                    label="Wajib Ganti Password"
+                                                >
+                                                    <span className="font-semibold text-slate-700">
+                                                        {user.must_change_password
+                                                            ? "Ya"
+                                                            : "Tidak"}
+                                                    </span>
+                                                </StatusItem>
+                
+                                                {Number(
+                                                    user.login_attempt
+                                                ) > 0 && (
+                                                    <StatusItem
+                                                        icon={
+                                                            <KeyRound
+                                                                size={17}
+                                                            />
+                                                        }
+                                                        label="Percobaan Login"
+                                                    >
+                                                        <span className="font-semibold text-red-600">
+                                                            {
+                                                                user.login_attempt
+                                                            }
+                                                        </span>
+                                                    </StatusItem>
+                                                )}
+                                            </div>
+                                        </section>
+                
+                                        {/* Tanggal */}
+                
+                                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-3">
+                                            <SectionTitle
+                                                icon={
+                                                    <CalendarDays
+                                                        size={19}
+                                                    />
+                                                }
+                                                title="Informasi Waktu"
+                                            />
+                
+                                            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+                                                <InfoItem
+                                                    icon={
+                                                        <CalendarDays
+                                                            size={18}
+                                                        />
+                                                    }
+                                                    label="Tanggal Daftar"
+                                                    value={formatDateTime(
+                                                        user.tgldaftar
+                                                    )}
+                                                />
+                
+                                                <InfoItem
+                                                    icon={
+                                                        <CalendarDays
+                                                            size={18}
+                                                        />
+                                                    }
+                                                    label="Tanggal Approval"
+                                                    value={formatDateTime(
+                                                        user.tglapproval
+                                                    )}
+                                                />
+                
+                                                <InfoItem
+                                                    icon={
+                                                        <CalendarDays
+                                                            size={18}
+                                                        />
+                                                    }
+                                                    label="Tanggal Dinonaktifkan"
+                                                    value={formatDateTime(
+                                                        user.tgldisabled
+                                                    )}
+                                                />
+                                            </div>
+                                        </section>
+                
+                                        {/* Alasan penolakan */}
+                
+                                        {user.approval === "rejected" &&
+                                            user.rejection_reason && (
+                                                <section className="rounded-2xl border border-orange-200 bg-orange-50 p-5 lg:col-span-3">
+                                                    <div className="flex items-start gap-3">
+                                                        <XCircle
+                                                            size={20}
+                                                            className="mt-0.5 shrink-0 text-orange-600"
+                                                        />
+                
+                                                        <div>
+                                                            <h3 className="font-semibold text-orange-800">
+                                                                Alasan Penolakan
+                                                            </h3>
+                
+                                                            <p className="mt-2 text-sm leading-6 text-orange-700">
+                                                                {
+                                                                    user.rejection_reason
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </section>
+                                            )}
+                
+                                        {/* Riwayat */}
+                
+                                        <section className="rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-3">
+                                            <ActivityLog
+                                                logs={user.activity_logs ?? []}
+                                                userId={user.id}
+                                                fetchPage={fetchActivityLogs}
+                                            />
+                                        </section>
+                                    </div>
+                                </div>
 
                 {/* Danger Zone */}
 
@@ -302,45 +384,139 @@ export default function Profile() {
 
 }
 
-function Info({
-
+function SectionTitle({
     icon,
-    title,
-    value,
-    children
-
+    title
 }) {
-
     return (
-
-        <div
-            className="
-                py-3
-                border-b
-                border-slate-200
-            "
-        >
-
-            <div className="flex items-center gap-2 text-slate-500 mb-3 pl-2">
-
+        <div className="flex items-center gap-2 text-slate-800">
+            <span className="text-blue-600">
                 {icon}
+            </span>
 
-                <span>{title}</span>
-
-            </div>
-
-            {children ? (
-                children
-            ) : (
-
-            <div className="text-lg font-semibold text-slate-800 pl-2">
-
-                {value || "-"}
-            </div>
-            )}
-            
+            <h3 className="font-semibold">
+                {title}
+            </h3>
         </div>
-
     );
+}
 
+function InfoItem({
+    icon,
+    label,
+    value
+}) {
+    return (
+        <div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+                {icon}
+                <span>{label}</span>
+            </div>
+
+            <p className="mt-2 break-words font-semibold text-slate-800">
+                {value || "-"}
+            </p>
+        </div>
+    );
+}
+
+function StatusItem({
+    icon,
+    label,
+    children
+}) {
+    return (
+        <div>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+                {icon}
+                <span>{label}</span>
+            </div>
+
+            <div className="mt-2">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function initialName(name) {
+    return name
+        ? name
+              .trim()
+              .charAt(0)
+              .toUpperCase()
+        : "U";
+}
+
+function formatRole(role) {
+    if (role === "super_admin") {
+        return "Super Admin";
+    }
+
+    if (role === "admin") {
+        return "Admin";
+    }
+
+    if (role === "viewer") {
+        return "Viewer";
+    }
+
+    if (role === "user") {
+        return "User";
+    }
+
+    return role ?? "-";
+}
+
+function statusColor(status) {
+    if (status === "aktif") return "green";
+    if (status === "disabled") return "red";
+
+    return "yellow";
+}
+
+function statusLabel(status) {
+    if (status === "aktif") return "Aktif";
+    if (status === "disabled") return "Nonaktif";
+    if (status === "pending") return "Pending";
+
+    return status ?? "-";
+}
+
+function approvalColor(approval) {
+    if (approval === "approved") return "green";
+    if (approval === "pending") return "yellow";
+
+    return "red";
+}
+
+function approvalLabel(approval) {
+    if (approval === "approved") {
+        return "Disetujui";
+    }
+
+    if (approval === "rejected") {
+        return "Ditolak";
+    }
+
+    if (approval === "pending") {
+        return "Pending";
+    }
+
+    return approval ?? "-";
+}
+
+function formatDateTime(value) {
+    return value
+        ? new Date(value).toLocaleString(
+              "id-ID",
+              {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+              }
+          )
+        : "-";
 }

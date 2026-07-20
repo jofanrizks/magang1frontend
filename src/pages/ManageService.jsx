@@ -905,12 +905,9 @@ export default function ManageServices() {
                                         currentPage <= 1
                                     }
                                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <ChevronLeft
-                                        size={18}
-                                    />
+                                >                                    
 
-                                    Sebelumnya
+                                    Prev
                                 </button>
 
                                 <button
@@ -927,11 +924,8 @@ export default function ManageServices() {
                                     }
                                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    Berikutnya
+                                    Next
 
-                                    <ChevronRight
-                                        size={18}
-                                    />
                                 </button>
                             </div>
                         </div>

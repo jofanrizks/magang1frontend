@@ -17,5 +17,5 @@ export const me = () => {
 };
 
 export const changeRequiredPassword = (data) => {
-    return api.post("/change-required-password", data);
-}
+    return api.post("/account/change-required-password", data);
+};

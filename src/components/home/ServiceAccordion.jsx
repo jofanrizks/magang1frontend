@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+    Link,
+    useNavigate
+} from "react-router-dom";
 import {
     ChevronDown,
     ChevronUp,
@@ -7,29 +10,30 @@ import {
     Lock
 } from "lucide-react";
 
-export default function ServiceAccordion({ 
+import { getUserGroupIds } from "../../utils/groups";
+
+export default function ServiceAccordion({
     menus,
     currentUser,
     loadingUser = false
- }) {
-
+}) {
     const navigate = useNavigate();
+
     const [openMenu, setOpenMenu] = useState({});
+
+    const userGroupIds = getUserGroupIds(currentUser);
 
     function canAccessService(serviceNumber) {
         if (!currentUser) {
             return false;
         }
 
-        if (currentUser.role === "viewer") {
+        if (["admin", "super_admin", "viewer"].includes(currentUser.role)) {
             return true;
         }
 
         if (currentUser.role === "user") {
-            return (
-                Number(serviceNumber) ===
-                Number(currentUser.group_id)
-            );
+            return userGroupIds.includes(Number(serviceNumber));
         }
 
         return false;
@@ -61,7 +65,6 @@ export default function ServiceAccordion({
     }
 
     return (
-
         <section
             id="layanan"
             className="
@@ -71,11 +74,9 @@ export default function ServiceAccordion({
                 py-12
             "
         >
-
             {/* Heading */}
 
             <div className="text-left mb-16">
-
                 <h2
                     className="
                         mt-2
@@ -84,9 +85,7 @@ export default function ServiceAccordion({
                         text-slate-900
                     "
                 >
-
                     Seluruh Layanan Digital
-
                 </h2>
 
                 <p
@@ -97,13 +96,10 @@ export default function ServiceAccordion({
                         leading-8
                     "
                 >
-
                     Pilih kategori layanan sesuai kebutuhan.
                     Seluruh layanan dapat diakses secara online
                     melalui satu portal yang terintegrasi.
-
                 </p>
-
             </div>
 
             {/* Accordion */}
@@ -117,132 +113,121 @@ export default function ServiceAccordion({
                     items-start
                 "
             >
-
                 {menus.map((menu, index) => {
-
                     const serviceNumber = index + 1;
-                    const isActiveService = canAccessService(serviceNumber);
-                    const isLocked = !loadingUser && !isActiveService ;
 
-                    return (                
+                    const isActiveService =
+                        canAccessService(serviceNumber);
 
-                    <div
+                    const isLocked =
+                        !loadingUser &&
+                        !isActiveService;
 
-                        key={menu.tittle ?? index}
-
-                        className={`
-                            bg-white
-                            rounded-3xl
-                            border
-                            border-slate-200
-                            overflow-hidden
-                            shadow-sm
-                            hover:shadow-xl
-                            transition-all
-                            duration-300
-                            ${
-                                isLocked
-                                    ? "opacity-70"
-                                    : "hover:shadow-xl"
-                            }
-                        `}
-                    >
-
-                        {/* Header */}
-
-                        <button
-
-                            onClick={() => toggleMenu(index)}
-
-                            className={`
-                                w-full
-                                px-6
-                                py-5
-                                flex
-                                items-center
-                                justify-between
-                                font-semibold
-                                text-slate-800
-                                hover:bg-slate-50
-                                transition
-                                cursor-pointer
-                                ${
-                                    isLocked
-                                        ? "cursor-pointer"
-                                        : "hover:bg-slate-50 cursor-pointer"
-                                }
-                                transition
-                            `}                            
-
-                        >
-
-                            <span>
-
-                                {menu.title}
-
-                            </span>
-
-                            {loadingUser ? (
-                                <span
-                                    className="
-                                        h-4
-                                        w-4
-                                        rounded-full
-                                        border-2
-                                        border-slate-300
-                                        border-t-blue-600
-                                        animate-spin
-                                    "
-                                />
-
-                            )  : isLocked ? (
-                                <Lock
-                                    size={18}
-                                    className="text-red-600"
-                                />
-                            ) : openMenu[index] ? (
-                                        <ChevronUp
-                                            size={18}
-                                            className="text-red-600"
-                                        />
-                                    ) : (
-                                        <ChevronDown
-                                            size={18}
-                                            className="text-red-500"
-                                        />
-                                    )}
-                        </button>
-
-                        {/* Content */}
-
+                    return (
                         <div
+                            key={menu.title ?? index}
                             className={`
+                                bg-white
+                                rounded-3xl
+                                border
+                                border-slate-200
+                                overflow-hidden
+                                shadow-sm
                                 transition-all
                                 duration-300
-                                overflow-hidden
                                 ${
-                                    openMenu[index]
-                                        ? "max-h-96"
-                                        : "max-h-0"
+                                    isLocked
+                                        ? "opacity-70"
+                                        : "hover:shadow-xl"
                                 }
                             `}
                         >
+                            {/* Header */}
 
-                            <div className="border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    toggleMenu(index)
+                                }
+                                disabled={loadingUser}
+                                className={`
+                                    w-full
+                                    px-6
+                                    py-5
+                                    flex
+                                    items-center
+                                    justify-between
+                                    font-semibold
+                                    text-slate-800
+                                    transition
+                                    disabled:cursor-wait
+                                    disabled:opacity-60
+                                    ${
+                                        isLocked
+                                            ? "cursor-not-allowed"
+                                            : "hover:bg-slate-50 cursor-pointer"
+                                    }
+                                `}
+                            >
+                                <span>
+                                    {menu.title}
+                                </span>
 
-                                {
-                                    menu.items.map((item) => (
+                                {loadingUser ? (
+                                    <span
+                                        className="
+                                            h-4
+                                            w-4
+                                            rounded-full
+                                            border-2
+                                            border-slate-300
+                                            border-t-blue-600
+                                            animate-spin
+                                        "
+                                    />
+                                ) : isLocked ? (
+                                    <Lock
+                                        size={18}
+                                        className="text-slate-400"
+                                    />
+                                ) : openMenu[index] ? (
+                                    <ChevronUp
+                                        size={18}
+                                        className="text-blue-600"
+                                    />
+                                ) : (
+                                    <ChevronDown
+                                        size={18}
+                                        className="text-slate-500"
+                                    />
+                                )}
+                            </button>
+
+                            {/* Content */}
+
+                            <div
+                                className={`
+                                    transition-all
+                                    duration-300
+                                    overflow-hidden
+                                    ${
+                                        openMenu[index] &&
+                                        isActiveService
+                                            ? "max-h-96"
+                                            : "max-h-0"
+                                    }
+                                `}
+                            >
+                                <div className="border-t border-slate-100">
+                                    {menu.items.map((item) => (
                                         <Link
-
                                             key={item.id}
-
-                                            to={`group-files?group_id=${serviceNumber}`}
-
+                                            to={`/group-files?group_id=${serviceNumber}`}
                                             state={{
                                                 groupId:
                                                     serviceNumber,
                                                 groupName:
-                                                    `group-$(serviceNumber)`,
+                                                    `group-${serviceNumber}`,
                                                 serviceName:
                                                     menu.title
                                             }}
@@ -254,21 +239,18 @@ export default function ServiceAccordion({
                                                 py-4
                                                 text-sm
                                                 text-slate-600
-                                                hover:bg-red-50
-                                                hover:text-red-600
+                                                hover:bg-blue-50
+                                                hover:text-blue-600
                                                 transition
                                                 group
                                             "
-
                                         >
-
                                             <span>
                                                 {item.name}
                                             </span>
 
                                             <ArrowRight
                                                 size={16}
-
                                                 className="
                                                     opacity-0
                                                     -translate-x-2
@@ -277,27 +259,14 @@ export default function ServiceAccordion({
                                                     group-hover:translate-x-0
                                                 "
                                             />
-
                                         </Link>
-
-                                    ))
-
-                                }
-
+                                    ))}
+                                </div>
                             </div>
-
                         </div>
-
-                    </div>
-
                     );
-
                 })}
-
             </div>
-
         </section>
-
     );
-
 }

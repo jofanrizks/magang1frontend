@@ -66,11 +66,9 @@ export default function Dashboard() {
     const [formErrors, setFormErrors] =
         useState({});
 
-    const [resetErrors, setResetErrors] =
-        useState({});
+    const [resetErrors, setResetErrors] = useState({});
 
-    const [rejectErrors, setRejectErrors] =
-        useState({});
+    const [rejectErrors, setRejectErrors] = useState({});
 
     useEffect(() => {
         fetchUsers();

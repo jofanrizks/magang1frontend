@@ -22,6 +22,8 @@ import {
     canResetPassword
 } from "../../utils/userPermissions";
 
+import { formatUserGroups } from "../../utils/groups";
+
 export default function userTableColumns({
     currentUser,
     onDetail,
@@ -38,6 +40,7 @@ export default function userTableColumns({
         {
             key: "nama",
             title: "Pengguna",
+            searchKey: "nama",
             align: "left",
             render: (user) => (
                 <div className="min-w-52">
@@ -58,6 +61,7 @@ export default function userTableColumns({
         {
             key: "nik",
             title: "NIK",
+            searchKey: "nik",
             align: "left",
             render: (user) => (
                 <span className="whitespace-nowrap text-sm text-slate-700">
@@ -69,6 +73,7 @@ export default function userTableColumns({
         {
             key: "role",
             title: "Role",
+            searchKey: "role",
             align: "center",
             render: (user) => (
                 <RoleBadge role={user.role} />
@@ -78,6 +83,7 @@ export default function userTableColumns({
         {
             key: "telp",
             title: "Kontak",
+            searchKey: "telp",
             align: "left",
             render: (user) => (
                 <div className="min-w-36">
@@ -87,7 +93,7 @@ export default function userTableColumns({
 
                     {user.role === "user" && user.group?.name && (
                         <p className="mt-1 text-xs text-slate-500">
-                            {user.group.name}
+                            {formatUserGroups(user)}
                         </p>
                     )}
                 </div>
@@ -97,6 +103,8 @@ export default function userTableColumns({
         {
             key: "sts",
             title: "Status",
+            searchKey: "sts",
+            searchLabel: (user) => statusLabel(user.sts),
             align: "center",
             render: (user) => (
                 <Badge color={statusColor(user.sts)}>
@@ -108,6 +116,8 @@ export default function userTableColumns({
         {
             key: "approval",
             title: "Approval",
+            searchKey: "approval",
+            searchLabel: (user) => approvalLabel(user.approval),
             align: "center",
             render: (user) => (
                 <Badge color={approvalColor(user.approval)}>
@@ -119,6 +129,7 @@ export default function userTableColumns({
         {
             key: "tgldaftar",
             title: "Terdaftar",
+            searchKey: "tgldaftar",
             align: "center",
             render: (user) => (
                 <span className="whitespace-nowrap text-sm text-slate-600">
@@ -261,7 +272,6 @@ function UserActionMenu({
                             top-11
                             z-50
                             min-w-52
-                            overflow-hidden
                             rounded-xl
                             border
                             border-slate-200

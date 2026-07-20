@@ -8,7 +8,9 @@ import {
     Clock3,
     CheckCircle2,
     User,
-    LogOut
+    LogOut,
+    Settings,
+    FolderCog
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -43,6 +45,15 @@ export default function Sidebar() {
             name: "Kelola Layanan",
             path: "/manage-services",
             icon: FolderCog,
+            roles: [
+                "admin",
+                "super_admin"
+            ]
+        },
+        {
+            name: "Pengaturan Banner",
+            path: "/setting",
+            icon: Settings,
             roles: [
                 "admin",
                 "super_admin"

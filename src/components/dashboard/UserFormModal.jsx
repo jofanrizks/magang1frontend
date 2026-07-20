@@ -12,7 +12,7 @@ const emptyForm = {
     instansi: "",
     jabatan: "",
     telp: "",
-    group_id: "",
+    group_ids: [],
     password: "",
     password_confirmation: "",
     sts: "aktif",
@@ -51,7 +51,7 @@ export default function UserFormModal({
                 instansi: user.instansi ?? "",
                 jabatan: user.jabatan ?? "",
                 telp: user.telp ?? "",
-                group_id: user.group_id ?? user.group?.id ?? "",
+                group_ids: (user.groups ?? []).map((group) => Number(group.id)),
                 password: "",
                 password_confirmation: "",
                 sts: user.sts ?? "aktif",
@@ -74,8 +74,19 @@ export default function UserFormModal({
             ...previous,
             [name]: value,
             ...(name === "role" && value !== "user"
-                ? { group_id: "" }
+                ? { group_ids: [] }
                 : {})
+        }));
+    }
+
+    function handleGroupChange(groupId) {
+        const numericGroupId = Number(groupId);
+
+        setForm((previous) => ({
+            ...previous,
+            group_ids: previous.group_ids.includes(numericGroupId)
+                ? previous.group_ids.filter((id) => id !== numericGroupId)
+                : [...previous.group_ids, numericGroupId]
         }));
     }
 
@@ -90,8 +101,8 @@ export default function UserFormModal({
 
         const nextErrors = {};
 
-        if (form.role === "user" && !form.group_id) {
-            nextErrors.group_id = "Group wajib dipilih untuk role user.";
+        if (form.role === "user" && form.group_ids.length === 0) {
+            nextErrors.group_ids = "Group wajib dipilih untuk role user.";
         }
 
         if (!isEdit && form.password !== form.password_confirmation) {
@@ -110,8 +121,8 @@ export default function UserFormModal({
             instansi: form.instansi,
             jabatan: form.jabatan,
             telp: form.telp,
-            group_id: form.role === "user"
-                ? form.group_id
+            group_ids: form.role === "user"
+                ? form.group_ids
                 : null
         };
 
@@ -224,21 +235,24 @@ export default function UserFormModal({
                 {form.role === "user" && (
                     <div className="space-y-2">
                         <label className="font-medium">Group</label>
-                        <select
-                            value={form.group_id}
-                            onChange={(event) => updateField("group_id", event.target.value)}
-                            disabled={loading}
-                            required
-                            className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Pilih group</option>
+                        <div className="max-h-44 overflow-y-auto rounded-xl border p-3">
                             {groups.map((group) => (
-                                <option key={group.id} value={group.id}>
+                                <label
+                                    key={group.id}
+                                    className="flex items-center gap-2 py-1 text-sm text-slate-700"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={form.group_ids.includes(Number(group.id))}
+                                        onChange={() => handleGroupChange(group.id)}
+                                        disabled={loading}
+                                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                    />
                                     {group.name}
-                                </option>
+                                </label>
                             ))}
-                        </select>
-                        {firstError("group_id") && <ErrorText>{firstError("group_id")}</ErrorText>}
+                        </div>
+                        {firstError("group_ids") && <ErrorText>{firstError("group_ids")}</ErrorText>}
                     </div>
                 )}
 

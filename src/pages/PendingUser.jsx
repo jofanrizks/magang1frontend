@@ -18,15 +18,16 @@ import {
     canApproveUser,
     canRejectUser
 } from "../utils/userPermissions";
+import { formatUserGroups } from "../utils/groups";
 
 export default function PendingUser() {
-    const [users, setUsers]                 = useState([]);
-    const [currentUser, setCurrentUser]     = useState(null);
-    const [selectedUser, setSelectedUser]   = useState(null);
-    const [rejectTarget, setRejectTarget]   = useState(null);
+    const [users, setUsers] = useState([]);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [rejectTarget, setRejectTarget] = useState(null);
     const [actionLoading, setActionLoading] = useState(null);
-    const [submitting, setSubmitting]       = useState(false);
-    const [rejectErrors, setRejectErrors]   = useState({});
+    const [submitting, setSubmitting] = useState(false);
+    const [rejectErrors, setRejectErrors] = useState({});
 
     useEffect(() => {
         getUsers();
@@ -191,7 +192,7 @@ export default function PendingUser() {
             sortable: false,
             render: (user) =>
                 user.role === "user"
-                    ? user.group?.name ?? "-"
+                    ? formatUserGroups(user)
                     : "-"
         },
         {

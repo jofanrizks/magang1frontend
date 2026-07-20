@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 
 export default function Table({
     title,
@@ -7,150 +7,195 @@ export default function Table({
     data = [],
     search = false,
     searchPlaceHolder = "Cari data...",
-    searchDelay = 0,        // 0 = tidak pakai debounce. isi angka (ms) untuk aktifkan debounce
     sortable = true,
     pagination = true,
-    pageSize = 10,
+    pageSize = 10
 }) {
 
-    const [keyword, setKeyword]       = useState("");
-    const [debouncedKeyword, setDebouncedKeyword] = useState("");
+    const [keyword, setKeyword] = useState("");
     const [sortConfig, setSortConfig] = useState(null);
-    const [page, setPage]             = useState(1);
+    const [page, setPage] = useState(1);
 
-    // ── Debounce ─────────────────────────────────────────────────────────────
-    // Kalau searchDelay > 0, aktifkan debounce
-    // Kalau searchDelay = 0, debouncedKeyword langsung sama dengan keyword
-    useEffect(() => {
-        if (searchDelay <= 0) {
-            setDebouncedKeyword(keyword);
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setDebouncedKeyword(keyword);
-        }, searchDelay);
-
-        // cleanup: batalkan timer kalau keyword berubah lagi sebelum timer habis
-        return () => clearTimeout(timer);
-
-    }, [keyword, searchDelay]);
-
-    // ── Filter ───────────────────────────────────────────────────────────────
     const filteredData = useMemo(() => {
-        if (!debouncedKeyword) return data;
+    if (!keyword) return data;
 
-        return data.filter((item) =>
-            columns.some((column) => {
-                if (column.render) return false;
-                const value = item[column.key];
-                return String(value ?? "")
-                    .toLowerCase()
-                    .includes(debouncedKeyword.toLowerCase());
-            })
-        );
-    }, [debouncedKeyword, data, columns]);
+    return data.filter((item) =>
+        columns.some((column) => {
+            const fieldKey = column.searchKey ?? (!column.render ? column.key : null);
+            if (!fieldKey) return false;
 
-    // ── Sort ─────────────────────────────────────────────────────────────────
+            const rawValue = String(item[fieldKey] ?? "").toLowerCase();
+
+            if (rawValue.includes(keyword.toLowerCase())) return true;
+
+            if (column.searchLabel) {
+                const label = String(column.searchLabel(item) ?? "").toLowerCase();
+                if (label.includes(keyword.toLowerCase())) return true;
+            }
+            return false;
+        })
+    );
+    }, [keyword, data, columns]);
+
     const sortedData = useMemo(() => {
         if (!sortConfig) return filteredData;
 
         return [...filteredData].sort((a, b) => {
-            const first  = a[sortConfig.key] ?? "";
+            const first = a[sortConfig.key] ?? "";
             const second = b[sortConfig.key] ?? "";
 
             return String(first).localeCompare(
                 String(second),
                 "id-ID",
-                { numeric: true, sensitivity: "base" }
+                {
+                    numeric: true,
+                    sensitivity: "base"
+                }
             ) * (sortConfig.direction === "asc" ? 1 : -1);
         });
     }, [filteredData, sortConfig]);
 
-    // ── Pagination ───────────────────────────────────────────────────────────
-    const totalPages = pagination
-        ? Math.max(1, Math.ceil(sortedData.length / pageSize))
-        : 1;
+    const totalPages =
+        pagination
+            ? Math.max(1, Math.ceil(sortedData.length / pageSize))
+            : 1;
 
     const visibleData = useMemo(() => {
         if (!pagination) return sortedData;
 
         const safePage = Math.min(page, totalPages);
-        const start    = (safePage - 1) * pageSize;
+        const start = (safePage - 1) * pageSize;
+
         return sortedData.slice(start, start + pageSize);
     }, [pagination, sortedData, page, pageSize, totalPages]);
 
-    // ── Handlers ─────────────────────────────────────────────────────────────
     function toggleSort(column) {
         if (!sortable || column.render || column.sortable === false) return;
 
-        setSortConfig((prev) => {
-            if (prev?.key !== column.key) return { key: column.key, direction: "asc" };
-            if (prev.direction === "asc")  return { key: column.key, direction: "desc" };
+        setSortConfig((previous) => {
+            if (previous?.key !== column.key) {
+                return {
+                    key: column.key,
+                    direction: "asc"
+                };
+            }
+
+            if (previous.direction === "asc") {
+                return {
+                    key: column.key,
+                    direction: "desc"
+                };
+            }
+
             return null;
         });
     }
 
     function changeKeyword(value) {
         setKeyword(value);
-        setPage(1); // reset ke halaman 1 setiap kali search berubah
+        setPage(1);
     }
 
-    function changePage(next) {
-        setPage(Math.min(Math.max(next, 1), totalPages));
+    function changePage(nextPage) {
+        setPage(Math.min(Math.max(nextPage, 1), totalPages));
     }
 
-    // ── Render ───────────────────────────────────────────────────────────────
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
-            {/* Header */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200">
+
             {(title || subtitle || search) && (
+
                 <div className="px-6 py-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
                     <div>
+
                         {title && (
-                            <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
+
+                            <h2 className="text-xl font-semibold text-slate-800">
+                                {title}
+                            </h2>
+
                         )}
+
                         {subtitle && (
-                            <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+
+                            <p className="text-sm text-slate-500 mt-1">
+                                {subtitle}
+                            </p>
+
                         )}
+
                     </div>
 
                     {search && (
+
                         <input
                             type="text"
                             placeholder={searchPlaceHolder}
                             value={keyword}
-                            onChange={(e) => changeKeyword(e.target.value)}
+                            onChange={(e) =>
+                                changeKeyword(e.target.value)
+                            }
                             className="
-                                w-full md:w-80 rounded-lg border border-slate-300
-                                px-4 py-2 text-sm focus:outline-none focus:ring-2
-                                focus:ring-blue-500 focus:border-blue-500
+                                w-full
+                                md:w-80
+                                rounded-lg
+                                border
+                                border-slate-300
+                                px-4
+                                py-2
+                                text-sm
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-blue-500
+                                focus:border-blue-500
                             "
                         />
-                    )}
-                </div>
-            )}
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full">
+                    )}
+
+                </div>
+
+            )}
+            <div className="overflow-y-visible">
+            
+                <div className="overflow-x-auto">
+
+                    <table className="w-full">
+
                     <thead>
+
                         <tr className="bg-slate-50">
+
                             {columns.map((column) => (
+
                                 <th
                                     key={column.key}
                                     onClick={() => toggleSort(column)}
                                     className={`
-                                        px-6 py-4 text-sm font-semibold uppercase
-                                        tracking-wide text-slate-600
-                                        ${column.align === "center" ? "text-center"
-                                            : column.align === "right" ? "text-right"
-                                            : "text-left"}
-                                        ${sortable && !column.render && column.sortable !== false
-                                            ? "cursor-pointer select-none"
-                                            : ""}
-                                    `}
+                                        px-6
+                                        py-4
+                                        text-sm
+                                        font-semibold
+                                        uppercase
+                                        tracking-wide
+                                        text-slate-600
+                                        ${
+                                            column.align === "center"
+                                                ? "text-center"
+                                                : column.align === "right"
+                                                ? "text-right"
+                                                : "text-left"
+                                        }
+                                        ${
+                                            sortable &&
+                                            !column.render &&
+                                            column.sortable !== false
+                                                ? "cursor-pointer select-none"
+                                                : ""
+                                        }
+                                    `}  
                                 >
                                     <span className="inline-flex items-center gap-1">
                                         {column.title}
@@ -161,52 +206,94 @@ export default function Table({
                                         )}
                                     </span>
                                 </th>
+
                             ))}
+
                         </tr>
+
                     </thead>
 
                     <tbody>
+
                         {visibleData.length > 0 ? (
+
                             visibleData.map((item, index) => (
+
                                 <tr
                                     key={item.id}
                                     className={`
-                                        border-t border-slate-100 hover:bg-blue-50 transition-colors
-                                        ${index % 2 === 0 ? "bg-white" : "bg-slate-50/40"}
+                                        border-t
+                                        border-slate-100
+                                        hover:bg-blue-50
+                                        transition-colors
+                                        ${index % 2 === 0
+                                            ? "bg-white"
+                                            : "bg-slate-50/40"
+                                        }
                                     `}
                                 >
+
                                     {columns.map((column) => (
+
                                         <td
                                             key={column.key}
                                             className={`
-                                                px-6 py-4 text-sm text-slate-700
-                                                ${column.align === "center" ? "text-center"
-                                                    : column.align === "right" ? "text-right"
-                                                    : "text-left"}
+                                                px-6
+                                                py-4
+                                                text-sm
+                                                text-slate-700
+                                                ${
+                                                    column.align === "center"
+                                                        ? "text-center"
+                                                        : column.align === "right"
+                                                        ? "text-right"
+                                                        : "text-left"
+                                                }
                                             `}
                                         >
-                                            {column.render ? column.render(item) : item[column.key]}
+
+                                            {
+                                                column.render
+                                                    ? column.render(item)
+                                                    : item[column.key]
+                                            }
+
                                         </td>
+
                                     ))}
+
                                 </tr>
+
                             ))
+
                         ) : (
+
                             <tr>
-                                <td colSpan={columns.length} className="py-12 text-center text-slate-400">
+
+                                <td
+                                    colSpan={columns.length}
+                                    className="py-12 text-center text-slate-400"
+                                >
                                     Tidak ada data ditemukan.
                                 </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
 
-            {/* Pagination */}
+                            </tr>
+
+                        )}
+
+                    </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
             {pagination && sortedData.length > 0 && (
                 <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
                     <span>
                         Menampilkan {visibleData.length} dari {sortedData.length} data
                     </span>
+
                     <div className="flex items-center justify-end gap-2">
                         <button
                             type="button"
@@ -216,7 +303,11 @@ export default function Table({
                         >
                             Prev
                         </button>
-                        <span className="px-2">{page} / {totalPages}</span>
+
+                        <span className="px-2">
+                            {page} / {totalPages}
+                        </span>
+
                         <button
                             type="button"
                             onClick={() => changePage(page + 1)}
@@ -230,5 +321,7 @@ export default function Table({
             )}
 
         </div>
+
     );
+
 }
