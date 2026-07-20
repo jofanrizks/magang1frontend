@@ -170,6 +170,9 @@ function UserActionMenu({
 
     const isDisabled =
         user.sts === "disabled";
+    const isPendingAccount =
+        user.sts === "pending" &&
+        user.approval === "pending";
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -339,52 +342,45 @@ function UserActionMenu({
                                 />
                             )}
 
-                        {(
-                            (canDisableUser(currentUser, user) &&
-                                onDisable) ||
-                            (canEnableUser(currentUser, user) &&
-                                onEnable)
-                        ) && (
-                            <MenuItem
-                                icon={
-                                    isDisabled ? (
-                                        <CheckCircle2 size={17} />
-                                    ) : (
-                                        <Ban size={17} />
-                                    )
-                                }
-                                label={
-                                    isDisabled
-                                        ? "Aktifkan pengguna"
-                                        : "Nonaktifkan pengguna"
-                                }
-                                onClick={() =>
-                                    runAction(
+                       {!isPendingAccount && (
+                            (
+                                (canDisableUser(currentUser, user) &&
+                                    onDisable) ||
+                                (canEnableUser(currentUser, user) &&
+                                    onEnable)
+                            ) && (
+                                <MenuItem
+                                    icon={
+                                        isDisabled ? (
+                                            <CheckCircle2 size={17} />
+                                        ) : (
+                                            <Ban size={17} />
+                                        )
+                                    }
+                                    label={
                                         isDisabled
-                                            ? onEnable
-                                            : onDisable
-                                    )
-                                }
-                                disabled={
-                                    isLoading(
-                                        actionLoading,
-                                        "disable",
-                                        user
-                                    ) ||
-                                    isLoading(
-                                        actionLoading,
-                                        "enable",
-                                        user
-                                    )
-                                }
-                                className={
-                                    isDisabled
-                                        ? "text-emerald-700"
-                                        : "text-red-700"
-                                }
-                            />
+                                            ? "Aktifkan pengguna"
+                                            : "Nonaktifkan pengguna"
+                                    }
+                                    onClick={() =>
+                                        runAction(
+                                            isDisabled
+                                                ? onEnable
+                                                : onDisable
+                                        )
+                                    }
+                                    disabled={
+                                        isLoading(actionLoading, "disable", user) ||
+                                        isLoading(actionLoading, "enable", user)
+                                    }
+                                    className={
+                                        isDisabled
+                                            ? "text-emerald-700"
+                                            : "text-red-700"
+                                    }
+                                />
+                            )
                         )}
-
                         {canDeleteUser(currentUser, user) &&
                             onDelete && (
                                 <>

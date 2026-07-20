@@ -48,7 +48,9 @@ export default function UserDetailModal({
 
     const isDisabled =
         user.sts === "disabled";
-
+    const isPendingAccount =
+        user.sts === "pending" &&
+        user.approval === "pending";
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm">
             <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
@@ -496,54 +498,54 @@ export default function UserDetailModal({
                             </FooterButton>
                         )}
 
-                    {(
-                        (canDisableUser(
-                            currentUser,
-                            user
-                        ) &&
-                            onDisable) ||
-                        (canEnableUser(
-                            currentUser,
-                            user
-                        ) &&
-                            onEnable)
-                    ) && (
-                        <FooterButton
-                            onClick={() =>
-                                isDisabled
-                                    ? onEnable(user)
-                                    : onDisable(user)
-                            }
-                            disabled={
-                                isLoading(
-                                    actionLoading,
-                                    "disable",
-                                    user
-                                ) ||
-                                isLoading(
-                                    actionLoading,
-                                    "enable",
-                                    user
-                                )
-                            }
-                            className={
-                                isDisabled
-                                    ? "bg-emerald-600 hover:bg-emerald-700"
-                                    : "bg-red-600 hover:bg-red-700"
-                            }
-                        >
-                            {isDisabled ? (
-                                <CheckCircle2
-                                    size={16}
-                                />
-                            ) : (
-                                <Ban size={16} />
-                            )}
+                    {!isPendingAccount && (
+                        (
+                            (canDisableUser(
+                                currentUser,
+                                user
+                            ) &&
+                                onDisable) ||
+                            (canEnableUser(
+                                currentUser,
+                                user
+                            ) &&
+                                onEnable)
+                        ) && (
+                            <FooterButton
+                                onClick={() =>
+                                    isDisabled
+                                        ? onEnable(user)
+                                        : onDisable(user)
+                                }
+                                disabled={
+                                    isLoading(
+                                        actionLoading,
+                                        "disable",
+                                        user
+                                    ) ||
+                                    isLoading(
+                                        actionLoading,
+                                        "enable",
+                                        user
+                                    )
+                                }
+                                className={
+                                    isDisabled
+                                        ? "bg-emerald-600 hover:bg-emerald-700"
+                                        : "bg-red-600 hover:bg-red-700"
+                                }
+                            >
+                                {isDisabled ? (
+                                    <CheckCircle2 size={16} />
+                                ) : (
+                                    <Ban size={16} />
+                                )}
 
-                            {isDisabled
-                                ? "Aktifkan"
-                                : "Nonaktifkan"}
-                        </FooterButton>
+                                {isDisabled
+                                    ? "Aktifkan"
+                                    : "Nonaktifkan"}
+                            </FooterButton>
+                        )
                     )}
 
                     {canDeleteUser(
