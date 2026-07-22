@@ -35,6 +35,25 @@ export const deleteGroupFile = (id) => {
     );
 };
 
+export const replaceGroupFile = (
+    id,
+    formData
+) => {
+    return api.post(
+        `/group-files/${id}/replace`,
+        formData
+    );
+};
+
+export const downloadGroupFile = (id) => {
+    return api.get(
+        `/group-files/${id}/download`,
+        {
+            responseType: "blob"
+        }
+    );
+};
+
 export const uploadAdminGroupFile = (
     groupId,
     serviceOptionId,

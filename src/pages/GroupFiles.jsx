@@ -16,9 +16,12 @@ import {
     ChevronLeft,
     ChevronRight,
     Download,
+    ExternalLink,
+    Eye,
     FileText,
     Loader2,
     MoveRight,
+    RefreshCw,
     Trash2,
     Upload,
     X
@@ -29,8 +32,10 @@ import { API_ORIGIN } from "../config/api";
 import {
     deleteAdminGroupFile,
     deleteGroupFile,
+    downloadGroupFile,
     getGroupFiles,
     moveAdminGroupFile,
+    replaceGroupFile,
     uploadAdminGroupFile,
     uploadGroupFile
 } from "../services/groupFileService";
@@ -39,6 +44,20 @@ import { getGroups } from "../services/userService";
 import { getServices } from "../services/serviceService";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const FILE_ACCEPT = ".pdf,.jpg,.jpeg,.png,.webp";
+const ALLOWED_EXTENSIONS = [
+    "pdf",
+    "jpg",
+    "jpeg",
+    "png",
+    "webp"
+];
+const ALLOWED_MIME_TYPES = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+];
 
 function formatFileSize(bytes = 0) {
     if (bytes < 1024) {
@@ -76,6 +95,44 @@ function getFileUrl(filePath) {
     return `${API_ORIGIN}/storage/${filePath}`;
 }
 
+function getResolvedFileUrl(file) {
+    return file?.file_url || getFileUrl(file?.file_path);
+}
+
+function getFileType(file) {
+    if (file?.file_type) {
+        return file.file_type;
+    }
+
+    if (file?.mime_type === "application/pdf") {
+        return "pdf";
+    }
+
+    if (file?.mime_type?.startsWith("image/")) {
+        return "image";
+    }
+
+    return "other";
+}
+
+function validateUploadFile(file) {
+    const extension =
+        file.name.split(".").pop()?.toLowerCase() || "";
+    const hasAllowedType =
+        ALLOWED_MIME_TYPES.includes(file.type) ||
+        ALLOWED_EXTENSIONS.includes(extension);
+
+    if (!hasAllowedType) {
+        return "File yang diperbolehkan hanya PDF, JPG, JPEG, PNG, atau WEBP.";
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+        return "Ukuran file maksimal 10 MB.";
+    }
+
+    return "";
+}
+
 function getErrorMessage(error, fallback) {
     if (error.response?.status === 403) {
         return "Anda tidak memiliki akses untuk file ini.";
@@ -88,11 +145,32 @@ function getErrorMessage(error, fallback) {
     return error.response?.data?.message || fallback;
 }
 
+async function getDownloadErrorMessage(error) {
+    const data = error.response?.data;
+
+    if (data instanceof Blob) {
+        try {
+            const text = await data.text();
+            const parsed = JSON.parse(text);
+
+            return parsed.message || "File gagal diunduh.";
+        } catch {
+            return "File gagal diunduh.";
+        }
+    }
+
+    return getErrorMessage(
+        error,
+        "File gagal diunduh."
+    );
+}
+
 export default function GroupFiles() {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
     const fileInputRef = useRef(null);
+    const replacementInputRef = useRef(null);
 
     const requestedGroupId =
         searchParams.get("group_id") ??
@@ -113,6 +191,7 @@ export default function GroupFiles() {
 
     const [group, setGroup] = useState(null);
     const [files, setFiles] = useState([]);
+    const [fileTypeFilter, setFileTypeFilter] = useState("all");
     const [pagination, setPagination] = useState({
         current_page: 1,
         last_page: 1,
@@ -132,7 +211,13 @@ export default function GroupFiles() {
     const [error, setError] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [previewFile, setPreviewFile] = useState(null);
+    const [replaceTarget, setReplaceTarget] = useState(null);
+    const [replacementFile, setReplacementFile] = useState(null);
+    const [replacementError, setReplacementError] = useState("");
     const [uploading, setUploading] = useState(false);
+    const [replacing, setReplacing] = useState(false);
+    const [downloadingId, setDownloadingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
 
     const currentPage = pagination.current_page || 1;
@@ -151,6 +236,13 @@ export default function GroupFiles() {
 
     const canUpload = isUser || isAdmin;
 
+    function canReplaceFile(file) {
+        const isUploader =
+            Number(file.user_id) === Number(currentUser?.id);
+
+        return isAdmin || (isUser && isUploader);
+    }
+
     const selectedService = useMemo(() => {
         return services.find(
             (service) =>
@@ -166,6 +258,15 @@ export default function GroupFiles() {
         () => selectedService?.options ?? [],
         [selectedService]
     );
+    const filteredFiles = useMemo(() => {
+        if (fileTypeFilter === "all") {
+            return files;
+        }
+
+        return files.filter(
+            (file) => getFileType(file) === fileTypeFilter
+        );
+    }, [files, fileTypeFilter]);
 
     const selectedOption = useMemo(() => {
         const optionId = Number(activeOptionId);
@@ -475,6 +576,22 @@ export default function GroupFiles() {
         }
     }
 
+    function closePreviewModal() {
+        setPreviewFile(null);
+    }
+
+    function closeReplacementModal(force = false) {
+        if (replacing && !force) return;
+
+        setReplaceTarget(null);
+        setReplacementFile(null);
+        setReplacementError("");
+
+        if (replacementInputRef.current) {
+            replacementInputRef.current.value = "";
+        }
+    }
+
     function openUploadModal() {
 
 
@@ -505,28 +622,52 @@ export default function GroupFiles() {
         setModalOpen(true);
     }
 
-    function handleFileChange(e) {
-        const file = e.target.files?.[0];
+    function handleFileChange(event) {
+        const file = event.target.files?.[0];
 
         if (!file) {
             setSelectedFile(null);
             return;
         }
 
-        if (file.size > MAX_FILE_SIZE) {
+        const validationMessage = validateUploadFile(file);
+
+        if (validationMessage) {
             setSelectedFile(null);
-            e.target.value = "";
+            event.target.value = "";
 
             Swal.fire({
                 icon: "error",
-                title: "File terlalu besar",
-                text: "Maksimal ukuran file adalah 10 MB."
+                title: "Format tidak didukung",
+                text: validationMessage
             });
 
             return;
         }
 
         setSelectedFile(file);
+    }
+
+    function handleReplacementFileChange(event) {
+        const file = event.target.files?.[0];
+
+        setReplacementError("");
+
+        if (!file) {
+            setReplacementFile(null);
+            return;
+        }
+
+        const validationMessage = validateUploadFile(file);
+
+        if (validationMessage) {
+            setReplacementFile(null);
+            setReplacementError(validationMessage);
+            event.target.value = "";
+            return;
+        }
+
+        setReplacementFile(file);
     }
 
     async function handleUpload(e) {
@@ -608,6 +749,117 @@ export default function GroupFiles() {
             });
         } finally {
             setUploading(false);
+        }
+    }
+
+    function openReplacementModal(file) {
+        if (!canReplaceFile(file)) {
+            Swal.fire({
+                icon: "error",
+                title: "Akses Ditolak",
+                text: "Anda tidak memiliki akses untuk mengganti file ini."
+            });
+
+            return;
+        }
+
+        setReplaceTarget(file);
+        setReplacementFile(null);
+        setReplacementError("");
+
+        if (replacementInputRef.current) {
+            replacementInputRef.current.value = "";
+        }
+    }
+
+    async function handleReplacementSubmit(event) {
+        event.preventDefault();
+
+        if (!replaceTarget) {
+            return;
+        }
+
+        if (!replacementFile) {
+            setReplacementError(
+                "Silakan pilih file pengganti terlebih dahulu."
+            );
+
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", replacementFile);
+
+        setReplacing(true);
+        setReplacementError("");
+
+        try {
+            await replaceGroupFile(
+                replaceTarget.id,
+                formData
+            );
+
+            closeReplacementModal(true);
+
+            await fetchFiles(currentPage);
+
+            await Swal.fire({
+                icon: "success",
+                title: "Berhasil",
+                text: "File berhasil diganti."
+            });
+        } catch (err) {
+            if (handleUnauthorized(err)) {
+                return;
+            }
+
+            setReplacementError(
+                getErrorMessage(
+                    err,
+                    "File gagal diganti."
+                )
+            );
+        } finally {
+            setReplacing(false);
+        }
+    }
+
+    async function handleDownload(file) {
+        if (!file || downloadingId === file.id) {
+            return;
+        }
+
+        setDownloadingId(file.id);
+
+        try {
+            const response = await downloadGroupFile(file.id);
+            const blob = response.data instanceof Blob
+                ? response.data
+                : new Blob([response.data]);
+            const blobUrl = window.URL.createObjectURL(
+                blob
+            );
+            const link = document.createElement("a");
+
+            link.href = blobUrl;
+            link.download = file.original_name || "file";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            if (handleUnauthorized(err)) {
+                return;
+            }
+
+            await Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: await getDownloadErrorMessage(err)
+            });
+        } finally {
+            setDownloadingId(null);
         }
     }
 
@@ -864,20 +1116,10 @@ export default function GroupFiles() {
                                 </select>
                             )}
 
-                            <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
-                                {serviceName}
-                            </div>
-
-                            {optionName && (
-                                <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-                                    {optionName}
-                                </div>
-                            )}
-
                             {canUpload && (
                                 <>
                                     <div className="rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-500">
-                                        Maksimal ukuran file 10 MB
+                                        PDF/JPG/PNG/WEBP, maksimal 10 MB
                                     </div>
 
                                     <button
@@ -949,18 +1191,49 @@ export default function GroupFiles() {
                     </div>
                 ) : (
                     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-5">
+                        <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h2 className="text-xl font-semibold text-slate-800">
                                     Daftar File
                                 </h2>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Total {pagination.total} file
+                                    {fileTypeFilter === "all"
+                                        ? `Total ${pagination.total} file`
+                                        : `Menampilkan ${filteredFiles.length} dari ${pagination.total} file`}
                                 </p>
                             </div>
-                        </div>
 
+                            <div className="inline-flex w-fit rounded-xl bg-slate-100 p-1">
+                                {[
+                                    { value: "all", label: "Semua" },
+                                    { value: "pdf", label: "PDF" },
+                                    { value: "image", label: "Gambar" }
+                                ].map((item) => (
+                                    <button
+                                        key={item.value}
+                                        type="button"
+                                        onClick={() => setFileTypeFilter(item.value)}
+                                        className={`
+                                            cursor-pointer
+                                            rounded-lg
+                                            px-4
+                                            py-2
+                                            text-sm
+                                            font-semibold
+                                            transition
+                                            ${
+                                                fileTypeFilter === item.value
+                                                    ? "bg-white text-blue-700 shadow-sm"
+                                                    : "text-slate-500 hover:text-slate-800"
+                                            }
+                                        `}
+                                    >
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -998,15 +1271,44 @@ export default function GroupFiles() {
                                 </thead>
 
                                 <tbody>
-                                    {files.map(
-                                        (
-                                            file,
-                                            index
-                                        ) => {
-                                            const fileUrl =
-                                                getFileUrl(
-                                                    file.file_path
+                                    {filteredFiles.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan={isAdmin ? 7 : 6}
+                                                className="px-6 py-14 text-center"
+                                            >
+                                                <div className="flex flex-col items-center justify-center text-slate-500">
+                                                    <FileText
+                                                        size={36}
+                                                        className="mb-3 text-slate-400"
+                                                    />
+
+                                                    <p className="font-semibold text-slate-600">
+                                                        Tidak ada file dengan tipe ini.
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm text-slate-400">
+                                                        Coba pilih filter lain.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredFiles.map(
+                                            (
+                                                file,
+                                                index
+                                            ) => {
+                                            const fileType =
+                                                getFileType(
+                                                    file
                                                 );
+                                            const displayFileType =
+                                                fileType === "pdf"
+                                                    ? "PDF"
+                                                    : fileType === "image"
+                                                      ? "Gambar"
+                                                      : file.mime_type || "-";
 
                                             const canDelete =
                                                 isAdmin ||
@@ -1019,6 +1321,10 @@ export default function GroupFiles() {
                                                         Number(
                                                             currentUser?.id
                                                         )
+                                                );
+                                            const canReplace =
+                                                canReplaceFile(
+                                                    file
                                                 );
 
                                             return (
@@ -1057,8 +1363,7 @@ export default function GroupFiles() {
                                                     )}
 
                                                     <td className="px-6 py-4 text-sm text-slate-700">
-                                                        {file.mime_type ||
-                                                            "-"}
+                                                        {displayFileType}
                                                     </td>
 
                                                     <td className="px-6 py-4 text-sm text-slate-700">
@@ -1072,83 +1377,67 @@ export default function GroupFiles() {
                                                             file.created_at
                                                         )}
                                                     </td>
+                                                    <td className="min-w-[300px] px-6 py-4">
+                                                        <div className="flex items-center justify-start gap-2 whitespace-nowrap">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setPreviewFile(file)}
+                                                                className="inline-flex h-9 min-w-[86px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-100 px-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-200"
+                                                                title="Lihat file"
+                                                            >
+                                                                <Eye size={16} />
+                                                                Lihat
+                                                            </button>
 
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            {fileUrl && (
-                                                                <a
-                                                                    href={
-                                                                        fileUrl
-                                                                    }
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700 transition hover:bg-blue-200"
-                                                                    title="Lihat atau download"
+                                                            {canReplace && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openReplacementModal(file)}
+                                                                    className="inline-flex h-9 min-w-[108px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-amber-100 px-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-200"
+                                                                    title="Ganti file"
                                                                 >
-                                                                    <Download
-                                                                        size={
-                                                                            18
-                                                                        }
-                                                                    />
-                                                                </a>
+                                                                    <RefreshCw size={16} />
+                                                                    Ganti File
+                                                                </button>
                                                             )}
 
                                                             {isAdmin && (
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() =>
-                                                                        handleMove(
-                                                                            file
-                                                                        )
-                                                                    }
-                                                                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200"
+                                                                    onClick={() => handleMove(file)}
+                                                                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200"
                                                                     title="Pindahkan file"
                                                                 >
-                                                                    <MoveRight
-                                                                        size={
-                                                                            18
-                                                                        }
-                                                                    />
+                                                                    <MoveRight size={16} />
                                                                 </button>
                                                             )}
 
                                                             {canDelete && (
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() =>
-                                                                        handleDelete(
-                                                                            file
-                                                                        )
-                                                                    }
-                                                                    disabled={
-                                                                        deletingId ===
-                                                                        file.id
-                                                                    }
-                                                                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-red-100 text-red-700 transition hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                                                                    onClick={() => handleDelete(file)}
+                                                                    disabled={deletingId === file.id}
+                                                                    className="inline-flex h-9 min-w-[88px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-red-100 px-3 text-sm font-semibold text-red-700 transition hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-60"
                                                                     title="Hapus file"
                                                                 >
-                                                                    {deletingId ===
-                                                                    file.id ? (
+                                                                    {deletingId === file.id ? (
                                                                         <Loader2
-                                                                            size={
-                                                                                18
-                                                                            }
+                                                                            size={16}
                                                                             className="animate-spin"
                                                                         />
                                                                     ) : (
-                                                                        <Trash2
-                                                                            size={
-                                                                                18
-                                                                            }
-                                                                        />
+                                                                        <Trash2 size={16} />
                                                                     )}
+
+                                                                    Hapus
                                                                 </button>
                                                             )}
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            );
-                                        }
+                                                );
+                                            }
+                                        )
                                     )}
                                 </tbody>
                             </table>
@@ -1242,6 +1531,7 @@ export default function GroupFiles() {
                             <input
                                 ref={fileInputRef}
                                 type="file"
+                                accept={FILE_ACCEPT}
                                 onChange={handleFileChange}
                                 className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
@@ -1288,6 +1578,208 @@ export default function GroupFiles() {
                                     )}
 
                                     Upload
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {previewFile && (() => {
+                const previewUrl = getResolvedFileUrl(previewFile);
+                const previewType = getFileType(previewFile);
+
+                return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                        <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+                            <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-800">
+                                        {previewFile.original_name}
+                                    </h2>
+
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Preview file group
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={closePreviewModal}
+                                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition hover:bg-slate-100"
+                                    title="Tutup"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="overflow-y-auto p-6">
+                                {!previewUrl ? (
+                                    <div className="flex h-[65vh] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 text-center font-medium text-slate-600">
+                                        URL file tidak tersedia.
+                                    </div>
+                                ) : previewType === "image" ? (
+                                    <div className="flex h-[70vh] items-center justify-center rounded-xl bg-slate-100">
+                                        <img
+                                            src={previewUrl}
+                                            alt={previewFile.original_name}
+                                            className="h-full w-full object-contain"
+                                        />
+                                    </div>
+                                ) : previewType === "pdf" ? (
+                                    <iframe
+                                        src={previewUrl}
+                                        title={previewFile.original_name}
+                                        className="h-[70vh] w-full rounded-xl border border-slate-200"
+                                    />
+                                ) : (
+                                    <div className="flex h-[65vh] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 text-center font-medium text-slate-600">
+                                        Tipe file ini belum didukung untuk preview.
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleDownload(
+                                            previewFile
+                                        )
+                                    }
+                                    disabled={
+                                        downloadingId ===
+                                        previewFile.id
+                                    }
+                                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {downloadingId ===
+                                    previewFile.id ? (
+                                        <Loader2
+                                            size={18}
+                                            className="animate-spin"
+                                        />
+                                    ) : (
+                                        <Download size={18} />
+                                    )}
+
+                                    {downloadingId ===
+                                    previewFile.id
+                                        ? "Mengunduh..."
+                                        : "Download"}
+                                </button>
+
+                                {previewUrl && (
+                                    <a
+                                        href={previewUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
+                                    >
+                                        <ExternalLink size={18} />
+                                        Buka di Tab Baru
+                                    </a>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={closePreviewModal}
+                                    className="cursor-pointer rounded-xl border border-slate-200 px-5 py-3 text-slate-700 transition hover:bg-slate-100"
+                                >
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {replaceTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                    <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+                        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-800">
+                                    Ganti File
+                                </h2>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    File lama: {replaceTarget.original_name}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => closeReplacementModal()}
+                                disabled={replacing}
+                                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Tutup"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form
+                            onSubmit={handleReplacementSubmit}
+                            className="space-y-5 p-6"
+                        >
+                            <input
+                                ref={replacementInputRef}
+                                type="file"
+                                accept={FILE_ACCEPT}
+                                onChange={handleReplacementFileChange}
+                                disabled={replacing}
+                                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                            />
+
+                            {replacementFile && (
+                                <div className="rounded-xl bg-slate-100 p-4 text-sm text-slate-600">
+                                    <p className="font-semibold text-slate-800">
+                                        {replacementFile.name}
+                                    </p>
+
+                                    <p className="mt-1">
+                                        {formatFileSize(
+                                            replacementFile.size
+                                        )}
+                                    </p>
+                                </div>
+                            )}
+
+                            {replacementError && (
+                                <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                                    {replacementError}
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        closeReplacementModal()
+                                    }
+                                    disabled={replacing}
+                                    className="cursor-pointer rounded-xl border border-slate-200 px-5 py-3 text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    Batal
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={
+                                        replacing ||
+                                        !replacementFile
+                                    }
+                                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {replacing && (
+                                        <Loader2
+                                            size={18}
+                                            className="animate-spin"
+                                        />
+                                    )}
+
+                                    Ganti File
                                 </button>
                             </div>
                         </form>
